@@ -1,15 +1,13 @@
-version: "3.9"
-
 services:
   backend:
     container_name: floehire-backend
     build:
-      context: ./backend
-      dockerfile: docker/Dockerfile
+      context: .
+      dockerfile: dockerfile
     ports:
       - "3333:3333"
     volumes:
-      - ./backend:/app
+      - .:/app
       - /app/node_modules
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@database:5432/floehire
