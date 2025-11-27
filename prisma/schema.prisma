@@ -1,10 +1,11 @@
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
+  engineType = "binary"
 }
 
 model candidate_experiences {

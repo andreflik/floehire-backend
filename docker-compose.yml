@@ -3,23 +3,17 @@ services:
     container_name: floehire-backend
     build:
       context: .
-      dockerfile: dockerfile
     ports:
       - "3333:3333"
-    volumes:
-      - .:/app
-      - /app/node_modules
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@database:5432/floehire
+      - PRISMA_CLIENT_ENGINE_TYPE=binary
     depends_on:
       - database
-    restart: always
 
   database:
     container_name: floehire-db
     image: postgres:15
-    ports:
-      - "5432:5432"
     environment:
       POSTGRES_DB: floehire
       POSTGRES_USER: postgres

@@ -1,22 +1,28 @@
 {
-  "name": "app",
+  "name": "floehire-backend",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/server.js",
   "scripts": {
-    "dev": "nodemon server.js",
-    "start": "node server.js"
+     "dev": "npx ts-node-dev --respawn src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "prisma:generate": "prisma generate"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
-  "dependencies": {
-    "@prisma/client": "^7.0.1",
-    "cors": "^2.8.5",
-    "dotenv": "^17.2.3",
-    "express": "^5.1.0",
-    "nodemon": "^3.1.11",
-    "pg": "^8.16.3",
-    "prisma": "^7.0.1"
-  }
+ "dependencies": {
+  "@prisma/client": "5.19.1",
+  "prisma": "5.19.1",
+  "bcrypt": "^6.0.0",
+  "cors": "^2.8.5",
+  "dotenv": "^17.2.3",
+  "express": "^4.21.2",
+  "pg": "^8.16.3"
+},
+"devDependencies": {
+  "@types/bcrypt": "^6.0.0",
+  "@types/cors": "^2.8.19",
+  "@types/express": "^4.17.25",
+  "@types/node": "^20.19.25",
+  "ts-node-dev": "^2.0.0",
+  "typescript": "^5.3.3"
+}
 }
