@@ -1,5 +1,5 @@
 import prisma from "../prisma";
-import bcrypt from "bcrypt";
+import * as bcrypt from "bcrypt";
 
 interface RegisterCandidateDTO {
   full_name: string;
