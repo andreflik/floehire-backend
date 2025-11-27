@@ -1,0 +1,37 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+model candidate_experiences {
+  id               String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  candidate_id     String?     @db.Uuid
+  job_title        String?     @db.VarChar(150)
+  start_date       DateTime?   @db.Date
+  end_date         DateTime?   @db.Date
+  responsibilities String?
+  created_at       DateTime?   @default(now()) @db.Timestamp(6)
+
+  candidates       candidates? @relation(fields: [candidate_id], references: [id], onDelete: Cascade)
+}
+
+model candidates {
+  id                    String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  full_name             String                  @db.VarChar(150)
+  email                 String                  @unique @db.VarChar(150)
+  phone                 String?                 @db.VarChar(20)
+  city                  String?                 @db.VarChar(100)
+  state                 String?                 @db.Char(2)
+  linkedin_url          String?
+  github_url            String?
+  portfolio_url         String?
+  password_hash         String
+  lgpd_consent          Boolean?                @default(false)
+  created_at            DateTime?               @default(now()) @db.Timestamp(6)
+
+  candidate_experiences candidate_experiences[]
+}
