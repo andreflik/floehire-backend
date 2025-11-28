@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import CandidateService from "@/application/services/CandidateService";
+import CandidateService from "../../../application/services/CandidateService";
 import PrismaCandidateRepository from "@/infra/repositories/PrismaCandidateRepository";
 import { RegisterCandidateDTO } from "@/application/dtos/RegisterCandidateDTO";
 

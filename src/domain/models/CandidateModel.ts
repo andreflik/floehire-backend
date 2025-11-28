@@ -12,6 +12,6 @@ export interface CandidateModel {
 
   password_hash: string;
 
-  lgpd_consent: boolean; // 👈 agora sem null
-  created_at: Date; // 👈 agora sem null
+  lgpd_consent: boolean;
+  created_at: Date;
 }

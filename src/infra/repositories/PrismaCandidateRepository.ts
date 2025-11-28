@@ -4,9 +4,17 @@ import { CandidateModel } from "@/domain/models/CandidateModel";
 
 class PrismaCandidateRepository implements CandidateRepository {
   async findByEmail(email: string): Promise<CandidateModel | null> {
-    return prisma.candidates.findUnique({
+    const candidate = await prisma.candidates.findUnique({
       where: { email },
     });
+
+    if (!candidate) return null;
+
+    return {
+      ...candidate,
+      lgpd_consent: candidate.lgpd_consent ?? false,
+      created_at: candidate.created_at ?? new Date(),
+    };
   }
 
   async create(
