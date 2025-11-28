@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "main": "dist/server.js",
   "scripts": {
-    "dev": "npx ts-node-dev --respawn src/server.ts",
-    "build": "tsc",
-    "start": "node dist/server.js",
-    "prisma:generate": "prisma generate"
-  },
+  "dev": "npx ts-node-dev --respawn -r tsconfig-paths/register src/server.ts",
+  "build": "tsc",
+  "start": "node dist/server.js",
+  "prisma:generate": "prisma generate"
+},
   "dependencies": {
     "@prisma/client": "5.19.1",
     "bcrypt": "^6.0.0",

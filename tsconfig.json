@@ -4,7 +4,12 @@
     "module": "CommonJS",
     "rootDir": "src",
     "outDir": "dist",
-    
+
+    "baseUrl": "./src",
+    "paths": {
+      "@/*": ["*"]
+    },
+
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "moduleResolution": "node",
@@ -17,5 +22,5 @@
     "skipLibCheck": true
   },
   "include": ["src"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "dist"]
 }
