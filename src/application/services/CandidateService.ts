@@ -7,91 +7,108 @@ class CandidateService {
   constructor(private readonly repository: CandidateRepository) {}
 
   async register(data: RegisterCandidateDTO) {
+    console.log("🔥 [SERVICE] Início register()");
     console.log("📥 Dados recebidos:", data);
-    console.log("📥 EXPERIENCE RECEBIDA:", data.experience);
 
-    const exists = await this.repository.findByEmail(data.email);
-    if (exists) {
-      throw new Error("EMAIL_ALREADY_EXISTS");
-    }
+    try {
+      console.log("🔍 Checando email...");
+      const exists = await this.repository.findByEmail(data.email);
 
-    const password_hash = await bcrypt.hash(data.password, 10);
+      if (exists) {
+        console.log("⛔ EMAIL JÁ EXISTE");
+        throw new Error("EMAIL_ALREADY_EXISTS");
+      }
 
-    const result = await prisma.$transaction(async (tx) => {
-      // 1️⃣ Cria o candidato
-      const candidate = await tx.candidates.create({
-        data: {
-          full_name: data.full_name,
-          email: data.email,
-          phone: data.phone ?? null,
-          city: data.city ?? null,
-          state: data.state ?? null,
-          linkedin_url: data.linkedin_url ?? null,
-          github_url: data.github_url ?? null,
-          portfolio_url: data.portfolio_url ?? null,
-          password_hash,
-          lgpd_consent: data.lgpd_consent,
-        },
-      });
+      console.log("🔐 Gerando hash da senha...");
+      const password_hash = await bcrypt.hash(data.password, 10);
 
-      console.log("✅ Candidato criado:", candidate.id);
+      console.log("🔧 Iniciando transaction...");
 
-      let experienceCreated = null;
+      const result = await prisma.$transaction(async (tx) => {
+        console.log("🧱 Criando candidato...");
 
-      // 2️⃣ Se houver experiência, cria ela
-      if (data.experience) {
-        console.log("📥 Criando experiência para:", candidate.id);
-
-        experienceCreated = await tx.candidate_experiences.create({
+        const candidate = await tx.candidates.create({
           data: {
-            candidate_id: candidate.id,
-            job_title: data.experience.job_title ?? null,
-            responsibilities: data.experience.responsibilities ?? null,
-            start_date: data.experience.start_date
-              ? new Date(`${data.experience.start_date}T00:00:00`)
-              : null,
-            end_date: data.experience.end_date
-              ? new Date(`${data.experience.end_date}T00:00:00`)
-              : null,
+            full_name: data.full_name,
+            email: data.email,
+            phone: data.phone ?? null,
+            city: data.city ?? null,
+            state: data.state ?? null,
+            linkedin_url: data.linkedin_url ?? null,
+            github_url: data.github_url ?? null,
+            portfolio_url: data.portfolio_url ?? null,
+            password_hash,
+            lgpd_consent: data.lgpd_consent,
           },
         });
 
-        console.log("✅ Experiência salva:", experienceCreated.id);
-      } else {
-        console.log("⚠️ Nenhuma experiência enviada!");
-      }
+        console.log("✅ Candidato criado:", candidate.id);
 
-      // 3️⃣ Retorna tudo
-      return {
-        candidate,
-        experience: experienceCreated,
-      };
-    });
+        // =====================================================
+        // EXPERIÊNCIAS PROFISSIONAIS
+        // =====================================================
+        const experiencesCreated: any[] = [];
 
-    // Resposta organizada pro front
-    return {
-      id: result.candidate.id,
-      full_name: result.candidate.full_name,
-      email: result.candidate.email,
-      phone: result.candidate.phone,
-      city: result.candidate.city,
-      state: result.candidate.state,
-      linkedin_url: result.candidate.linkedin_url,
-      github_url: result.candidate.github_url,
-      portfolio_url: result.candidate.portfolio_url,
-      lgpd_consent: result.candidate.lgpd_consent,
-      created_at: result.candidate.created_at,
+        if (data.experiences?.length) {
+          console.log(`🚧 Criando ${data.experiences.length} experiências...`);
 
-      experience: result.experience
-        ? {
-            id: result.experience.id,
-            job_title: result.experience.job_title,
-            start_date: result.experience.start_date,
-            end_date: result.experience.end_date,
-            responsibilities: result.experience.responsibilities,
+          for (const exp of data.experiences) {
+            const saved = await tx.candidate_experiences.create({
+              data: {
+                candidate_id: candidate.id,
+                job_title: exp.job_title ?? null,
+                responsibilities: exp.responsibilities ?? null,
+                start_date: exp.start_date
+                  ? new Date(`${exp.start_date}-01`)
+                  : null,
+                end_date: exp.end_date ? new Date(`${exp.end_date}-01`) : null,
+              },
+            });
+
+            console.log("📌 Experiência salva:", saved.id);
+            experiencesCreated.push(saved);
           }
-        : null,
-    };
+        } else {
+          console.log("⚠️ Nenhuma experiência enviada");
+        }
+
+        // =====================================================
+        // EDUCAÇÃO
+        // =====================================================
+        console.log("🎓 Criando educação...");
+
+        const educationSaved = await tx.candidate_education.create({
+          data: {
+            candidate_id: candidate.id,
+            escolaridade: data.escolaridade ?? null,
+            curso: data.curso ?? null,
+            instituicao: data.instituicao ?? null,
+            ano_conclusao: data.ano_conclusao ?? null,
+            certificacoes: data.certificacoes ?? null,
+            idiomas: data.idiomas ?? null,
+          },
+        });
+
+        console.log("🎓 Educação salva:", educationSaved.id);
+
+        return {
+          candidate,
+          experiences: experiencesCreated,
+          education: educationSaved,
+        };
+      });
+
+      console.log("🏁 Resultado final:", result);
+
+      return {
+        ...result.candidate,
+        experiences: result.experiences,
+        education: result.education,
+      };
+    } catch (err) {
+      console.error("💥 ERRO NO SERVICE:", err);
+      throw err;
+    }
   }
 }
 

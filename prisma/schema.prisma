@@ -4,36 +4,67 @@ datasource db {
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider   = "prisma-client-js"
   engineType = "binary"
 }
 
-model candidate_experiences {
-  id               String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  candidate_id     String?     @db.Uuid
-  job_title        String?     @db.VarChar(150)
-  start_date       DateTime?   @db.Date
-  end_date         DateTime?   @db.Date
-  responsibilities String?
-  created_at       DateTime?   @default(now()) @db.Timestamp(6)
+model candidates {
+  id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
 
-  candidates       candidates? @relation(fields: [candidate_id], references: [id], onDelete: Cascade)
+  // Dados pessoais
+  full_name     String      @db.VarChar(150)
+  email         String      @unique @db.VarChar(150)
+  phone         String?     @db.VarChar(20)
+  city          String?     @db.VarChar(100)
+  state         String?     @db.Char(2)
+
+  // Links profissionais
+  linkedin_url  String?
+  github_url    String?
+  portfolio_url String?
+
+  // Login
+  password_hash String
+
+  // LGPD
+  lgpd_consent  Boolean     @default(false)
+
+  // Timestamps
+  created_at    DateTime    @default(now())
+
+  // Relações
+  candidate_experiences candidate_experiences[]
+  candidate_education   candidate_education[]
 }
 
-model candidates {
-  id                    String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  full_name             String      @db.VarChar(150)
-  email                 String      @unique @db.VarChar(150)
-  phone                 String?     @db.VarChar(20)
-  city                  String?     @db.VarChar(100)
-  state                 String?     @db.Char(2)
-  linkedin_url          String?
-  github_url            String?
-  portfolio_url         String?
-  password_hash         String
+model candidate_experiences {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
 
-  lgpd_consent          Boolean     @default(false)
-  created_at            DateTime    @default(now())
+  candidate_id     String     @db.Uuid
+  job_title        String?    @db.VarChar(150)
+  start_date       DateTime?  @db.Date
+  end_date         DateTime?  @db.Date
+  responsibilities String?
 
-  candidate_experiences candidate_experiences[]
+  created_at       DateTime?  @default(now()) @db.Timestamp(6)
+
+  candidates       candidates @relation(fields: [candidate_id], references: [id], onDelete: Cascade)
+}
+
+model candidate_education {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  candidate_id     String     @db.Uuid
+
+  // Campos do formulário
+  escolaridade     String?    // ex.: Superior, Técnico, Médio
+  curso            String?
+  instituicao      String?
+  ano_conclusao    String?    // string pois pode ser "Cursando"
+  certificacoes    String?
+  idiomas          String?    // ex.: "Inglês - Básico, Espanhol - Intermediário"
+
+  created_at       DateTime?  @default(now())
+
+  candidates       candidates @relation(fields: [candidate_id], references: [id], onDelete: Cascade)
 }

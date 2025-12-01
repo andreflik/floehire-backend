@@ -10,12 +10,22 @@ export interface RegisterCandidateDTO {
   github_url?: string;
   portfolio_url?: string;
 
+  escolaridade?: string;
+  curso?: string;
+  instituicao?: string;
+  ano_conclusao?: string;
+  certificacoes?: string;
+  idiomas?: string;
+
+  portfolio_file?: any;
+  portfolio_link?: string;
+
   lgpd_consent: boolean;
 
-  experience?: {
-    job_title?: string;
-    start_date?: string;
-    end_date?: string;
-    responsibilities?: string;
-  };
+  experiences?: {
+    job_title: string;
+    start_date: string;
+    end_date: string;
+    responsibilities: string;
+  }[];
 }
