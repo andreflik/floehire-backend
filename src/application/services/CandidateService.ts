@@ -1,6 +1,8 @@
 import { RegisterCandidateDTO } from "../dtos/RegisterCandidateDTO";
 import { CandidateRepository } from "@/domain/repositories/CandidateRepository";
+import { LoginCandidateDTO } from "../dtos/LoginCandidateDTO";
 import * as bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import prisma from "@/prisma";
 
 class CandidateService {
@@ -109,6 +111,48 @@ class CandidateService {
       console.error("💥 ERRO NO SERVICE:", err);
       throw err;
     }
+  }
+
+  async login(data: LoginCandidateDTO) {
+    console.log("🔐 [SERVICE] Login iniciado:", data.email);
+
+    const candidate = await this.repository.findByEmail(data.email);
+
+    if (!candidate) {
+      throw new Error("INVALID_CREDENTIALS");
+    }
+
+    // Verifica a senha
+    const isValidPassword = await bcrypt.compare(
+      data.password,
+      candidate.password_hash
+    );
+
+    if (!isValidPassword) {
+      throw new Error("INVALID_CREDENTIALS");
+    }
+
+    // Gera token JWT
+    const token = jwt.sign(
+      {
+        sub: candidate.id,
+        email: candidate.email,
+        role: "candidate",
+      },
+      process.env.JWT_SECRET || "dev-secret",
+      {
+        expiresIn: "1d",
+      }
+    );
+
+    return {
+      token,
+      candidate: {
+        id: candidate.id,
+        full_name: candidate.full_name,
+        email: candidate.email,
+      },
+    };
   }
 }
 

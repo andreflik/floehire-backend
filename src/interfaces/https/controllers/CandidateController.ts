@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
-import CandidateService from "@/application/services/CandidateService";
-import PrismaCandidateRepository from "@/infra/repositories/PrismaCandidateRepository";
+import CandidateService from "../../../application/services/CandidateService";
+import PrismaCandidateRepository from "../../../infra/repositories/PrismaCandidateRepository";
 import { RegisterCandidateDTO } from "@/application/dtos/RegisterCandidateDTO";
+import { LoginCandidateDTO } from "@/application/dtos/LoginCandidateDTO";
 
 const repository = new PrismaCandidateRepository();
 const service = new CandidateService(repository);
@@ -26,6 +27,23 @@ class CandidateController {
       }
 
       return res.status(500).json({ error: "Erro interno do servidor" });
+    }
+  }
+
+  async login(req: Request, res: Response) {
+    try {
+      const data: LoginCandidateDTO = req.body;
+
+      const result = await service.login(data);
+
+      return res.status(200).json(result);
+    } catch (error: any) {
+      if (error.message === "INVALID_CREDENTIALS") {
+        return res.status(401).json({ error: "Credenciais inválidas" });
+      }
+
+      console.error("LOGIN ERROR:", error);
+      return res.status(500).json({ error: "Erro interno no servidor" });
     }
   }
 }
