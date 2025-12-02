@@ -4,6 +4,7 @@ import { LoginCandidateDTO } from "../dtos/LoginCandidateDTO";
 import * as bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import prisma from "@/prisma";
+import crypto from "crypto";
 
 class CandidateService {
   constructor(private readonly repository: CandidateRepository) {}
@@ -153,6 +154,46 @@ class CandidateService {
         email: candidate.email,
       },
     };
+  }
+
+  async forgotPassword(email: string) {
+    const candidate = await prisma.candidates.findUnique({ where: { email } });
+
+    if (!candidate) {
+      return;
+    }
+
+    const token = crypto.randomBytes(32).toString("hex");
+
+    await prisma.password_reset_tokens.create({
+      data: {
+        email,
+        token,
+        expires_at: new Date(Date.now() + 30 * 60 * 1000),
+      },
+    });
+
+    console.log("📧 Link de redefinição:");
+    console.log(`http://localhost:5173/resetar-senha?token=${token}`);
+  }
+
+  async resetPassword(token: string, newPassword: string) {
+    const reset = await prisma.password_reset_tokens.findFirst({
+      where: { token },
+    });
+
+    if (!reset || reset.expires_at < new Date()) {
+      throw new Error("INVALID_TOKEN");
+    }
+
+    const hash = await bcrypt.hash(newPassword, 10);
+
+    await prisma.candidates.update({
+      where: { email: reset.email },
+      data: { password_hash: hash },
+    });
+
+    await prisma.password_reset_tokens.delete({ where: { id: reset.id } });
   }
 }
 

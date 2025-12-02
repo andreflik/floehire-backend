@@ -68,3 +68,11 @@ model candidate_education {
 
   candidates       candidates @relation(fields: [candidate_id], references: [id], onDelete: Cascade)
 }
+
+model password_reset_tokens {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email       String   @db.VarChar(150)
+  token       String
+  expires_at  DateTime
+  created_at  DateTime  @default(now())
+}
