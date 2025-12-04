@@ -157,43 +157,48 @@ class CandidateService {
   }
 
   async forgotPassword(email: string) {
-    const candidate = await prisma.candidates.findUnique({ where: { email } });
+    const candidate = await this.repository.findByEmail(email);
 
     if (!candidate) {
-      return;
+      throw new Error("EMAIL_NOT_FOUND");
     }
 
-    const token = crypto.randomBytes(32).toString("hex");
+    const token = crypto.randomUUID();
 
-    await prisma.password_reset_tokens.create({
-      data: {
-        email,
-        token,
-        expires_at: new Date(Date.now() + 30 * 60 * 1000),
-      },
+    await prisma.password_reset_tokens.upsert({
+      where: { email },
+      update: { token },
+      create: { email, token },
     });
 
-    console.log("📧 Link de redefinição:");
-    console.log(`http://localhost:5173/resetar-senha?token=${token}`);
+    const resetLink = `http://localhost:5173/resetar-senha/${token}`;
+
+    console.log("📧 Link de redefinição enviado:", resetLink);
+
+    return resetLink;
   }
 
   async resetPassword(token: string, newPassword: string) {
-    const reset = await prisma.password_reset_tokens.findFirst({
+    const record = await prisma.password_reset_tokens.findUnique({
       where: { token },
     });
 
-    if (!reset || reset.expires_at < new Date()) {
-      throw new Error("INVALID_TOKEN");
+    if (!record) {
+      throw new Error("TOKEN_INVALIDO");
     }
 
     const hash = await bcrypt.hash(newPassword, 10);
 
     await prisma.candidates.update({
-      where: { email: reset.email },
+      where: { email: record.email },
       data: { password_hash: hash },
     });
 
-    await prisma.password_reset_tokens.delete({ where: { id: reset.id } });
+    await prisma.password_reset_tokens.delete({
+      where: { email: record.email },
+    });
+
+    return true;
   }
 }
 

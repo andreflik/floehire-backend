@@ -49,29 +49,21 @@ class CandidateController {
 
   async forgotPassword(req: Request, res: Response) {
     try {
-      const { email } = req.body;
-
-      await service.forgotPassword(email);
-
-      return res.json({ message: "Se o e-mail existir, enviamos instruções." });
-    } catch (err) {
-      console.error(err);
-      return res.status(500).json({ error: "Erro interno" });
+      await service.forgotPassword(req.body.email);
+      return res.json({ message: "E-mail enviado com instruções." });
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
     }
   }
 
   async resetPassword(req: Request, res: Response) {
     try {
       const { token, newPassword } = req.body;
-
       await service.resetPassword(token, newPassword);
 
       return res.json({ message: "Senha alterada com sucesso!" });
     } catch (error: any) {
-      if (error.message === "INVALID_TOKEN") {
-        return res.status(400).json({ error: "Token inválido ou expirado" });
-      }
-      return res.status(500).json({ error: "Erro interno" });
+      return res.status(400).json({ error: error.message });
     }
   }
 }
