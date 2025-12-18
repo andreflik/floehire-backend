@@ -1,8 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import recruiterRoutes from "./interfaces/https/routes/recruiter.routes";
-import candidateRoutes from "./interfaces/https/routes/candidate.routes";
+import routes from "./interfaces/https/routes";
 import { errorHandlerMiddleware } from "./interfaces/https/middlewares/errorHandlerMiddleware";
 
 dotenv.config();
@@ -12,18 +11,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ===========================
-//   🔥 ROTAS DO CANDIDATO
-// ===========================
-console.log("📌 Rotas de candidato carregadas!");
-app.use("/", candidateRoutes);
+// 🔥 REGISTRA TODAS AS ROTAS AQUI
+app.use(routes);
 
-// ===========================
-// 🔥 ROTAS DO RECRUTADOR
-// ===========================
-app.use("/", recruiterRoutes);
-
-// ROTA DE TESTE
+// rota de teste
 app.get("/", (req, res) => {
   res.send("API FloeHire rodando 🚀");
 });
@@ -34,4 +25,5 @@ app.listen(PORT, () => {
   console.log(`🔥 Backend rodando em http://localhost:${PORT}`);
 });
 
+// middleware de erro SEMPRE por último
 app.use(errorHandlerMiddleware);
