@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-
+import recruiterRoutes from "./interfaces/https/routes/recruiter.routes";
 import candidateRoutes from "./interfaces/https/routes/candidate.routes";
 
 dotenv.config();
@@ -16,6 +16,11 @@ app.use(express.json());
 // ===========================
 console.log("📌 Rotas de candidato carregadas!");
 app.use("/", candidateRoutes);
+
+// ===========================
+// 🔥 ROTAS DO RECRUTADOR
+// ===========================
+app.use("/", recruiterRoutes);
 
 // ROTA DE TESTE
 app.get("/", (req, res) => {

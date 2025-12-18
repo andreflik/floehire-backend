@@ -165,10 +165,18 @@ class CandidateService {
 
     const token = crypto.randomUUID();
 
-    await prisma.password_reset_tokens.upsert({
+    // Remove tokens antigos desse email (se existirem)
+    await prisma.password_reset_tokens.deleteMany({
       where: { email },
-      update: { token },
-      create: { email, token },
+    });
+
+    // Cria novo token
+    await prisma.password_reset_tokens.create({
+      data: {
+        email,
+        token,
+        expires_at: new Date(Date.now() + 1000 * 60 * 60), // 1 hora
+      },
     });
 
     const resetLink = `http://localhost:5173/resetar-senha/${token}`;
@@ -187,6 +195,10 @@ class CandidateService {
       throw new Error("TOKEN_INVALIDO");
     }
 
+    if (record.expires_at < new Date()) {
+      throw new Error("TOKEN_EXPIRADO");
+    }
+
     const hash = await bcrypt.hash(newPassword, 10);
 
     await prisma.candidates.update({
@@ -195,7 +207,7 @@ class CandidateService {
     });
 
     await prisma.password_reset_tokens.delete({
-      where: { email: record.email },
+      where: { token },
     });
 
     return true;

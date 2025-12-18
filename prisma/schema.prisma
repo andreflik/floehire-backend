@@ -8,71 +8,165 @@ generator client {
   engineType = "binary"
 }
 
+enum job_status {
+  OPEN
+  PAUSED
+  CLOSED
+  ARCHIVED
+}
+
+enum job_work_model {
+  ONSITE
+  HYBRID
+  REMOTE
+}
+
+enum job_contract_type {
+  CLT
+  PJ
+}
+
+enum job_hire_type {
+  REPLACEMENT
+  NEW_POSITION
+}
+
 model candidates {
   id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
 
-  // Dados pessoais
   full_name     String      @db.VarChar(150)
   email         String      @unique @db.VarChar(150)
   phone         String?     @db.VarChar(20)
   city          String?     @db.VarChar(100)
   state         String?     @db.Char(2)
 
-  // Links profissionais
   linkedin_url  String?
   github_url    String?
   portfolio_url String?
 
-  // Login
   password_hash String
 
-  // LGPD
   lgpd_consent  Boolean     @default(false)
 
-  // Timestamps
   created_at    DateTime    @default(now())
 
-  // Relações
   candidate_experiences candidate_experiences[]
   candidate_education   candidate_education[]
+
+  job_candidates        job_candidates[]
 }
 
 model candidate_experiences {
-  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-
-  candidate_id     String     @db.Uuid
-  job_title        String?    @db.VarChar(150)
-  start_date       DateTime?  @db.Date
-  end_date         DateTime?  @db.Date
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  candidate_id  String   @db.Uuid
+  job_title     String?
+  start_date    DateTime?
+  end_date      DateTime?
   responsibilities String?
+  created_at    DateTime @default(now())
 
-  created_at       DateTime?  @default(now()) @db.Timestamp(6)
-
-  candidates       candidates @relation(fields: [candidate_id], references: [id], onDelete: Cascade)
+  candidate     candidates @relation(fields: [candidate_id], references: [id], onDelete: Cascade)
 }
 
 model candidate_education {
   id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-
   candidate_id     String     @db.Uuid
 
-  // Campos do formulário
-  escolaridade     String?    // ex.: Superior, Técnico, Médio
+  escolaridade     String?
   curso            String?
   instituicao      String?
-  ano_conclusao    String?    // string pois pode ser "Cursando"
+  ano_conclusao    String?
   certificacoes    String?
-  idiomas          String?    // ex.: "Inglês - Básico, Espanhol - Intermediário"
+  idiomas          String?
 
   created_at       DateTime?  @default(now())
 
   candidates       candidates @relation(fields: [candidate_id], references: [id], onDelete: Cascade)
 }
+model recruiters {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_name  String   @db.VarChar(150)
+  email         String   @unique @db.VarChar(150)
+  password_hash String
+  created_at    DateTime @default(now())
+
+  jobs          jobs[]
+}
+
+model jobs {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  recruiter_id  String   @db.Uuid
+
+  title         String   @db.VarChar(150)
+  description   String?
+  status        job_status @default(OPEN)
+  seniority     String?
+  work_model    job_work_model?
+  contract_type job_contract_type?
+  hire_type     job_hire_type?
+
+  city          String?
+  state         String?
+  salary_min    Int?
+  salary_max    Int?
+
+  opened_at     DateTime @default(now())
+  deadline      DateTime?
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  recruiter     recruiters @relation(fields: [recruiter_id], references: [id], onDelete: Cascade)
+  stages        job_stages[]
+  candidates    job_candidates[]
+}
+
+
+model job_stages {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  job_id      String   @db.Uuid
+  name        String
+  stage_order Int
+  created_at  DateTime @default(now())
+
+  job         jobs @relation(fields: [job_id], references: [id], onDelete: Cascade)
+  candidates  job_candidates[]
+}
+
+
+model job_candidates {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  job_id           String   @db.Uuid
+  candidate_id     String   @db.Uuid
+  current_stage_id String?  @db.Uuid
+
+  rating           Int?
+  notes            String?
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  job           jobs        @relation(fields: [job_id], references: [id], onDelete: Cascade)
+  candidate     candidates  @relation(fields: [candidate_id], references: [id], onDelete: Cascade)
+  current_stage job_stages? @relation(fields: [current_stage_id], references: [id])
+
+  history       job_candidate_history[]
+}
+
+model job_candidate_history {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  job_candidate_id String   @db.Uuid
+  from_stage_name  String?
+  to_stage_name    String?
+  moved_at         DateTime @default(now())
+  moved_by         String?
+  comment          String?
+
+  job_candidate job_candidates @relation(fields: [job_candidate_id], references: [id], onDelete: Cascade)
+}
 
 model password_reset_tokens {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email       String   @db.VarChar(150)
-  token       String
-  expires_at  DateTime
-  created_at  DateTime  @default(now())
+  id         String   @id @default(uuid())
+  email      String
+  token      String   @unique
+  expires_at DateTime
+  created_at DateTime @default(now())
 }
