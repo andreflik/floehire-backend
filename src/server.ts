@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import recruiterRoutes from "./interfaces/https/routes/recruiter.routes";
 import candidateRoutes from "./interfaces/https/routes/candidate.routes";
+import { errorHandlerMiddleware } from "./interfaces/https/middlewares/errorHandlerMiddleware";
 
 dotenv.config();
 
@@ -32,3 +33,5 @@ const PORT = process.env.PORT || 3333;
 app.listen(PORT, () => {
   console.log(`🔥 Backend rodando em http://localhost:${PORT}`);
 });
+
+app.use(errorHandlerMiddleware);
