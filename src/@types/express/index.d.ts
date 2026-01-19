@@ -9,3 +9,7 @@ declare module "express-serve-static-core" {
     };
   }
 }
+
+export function Router() {
+  throw new Error("Function not implemented.");
+}

@@ -1,18 +1,17 @@
-import { Router } from "express";
+import express from "express";
 
 import recruiterRoutes from "./recruiter.routes";
 import candidateRoutes from "./candidate.routes";
 import jobRoutes from "./job.routes";
 import applicationRoutes from "./application.routes";
+import pipelineRoutes from "./pipeline.routes";
 
-const router = Router();
+const router = express.Router();
 
-// rotas públicas / auth
 router.use("/", candidateRoutes);
 router.use("/", recruiterRoutes);
-
-// rotas protegidas
 router.use("/jobs", jobRoutes);
 router.use("/applications", applicationRoutes);
+router.use("/", pipelineRoutes);
 
 export default router;
