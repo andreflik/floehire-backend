@@ -29,6 +29,30 @@ class RecruiterController {
       return res.status(500).json({ message: "Erro interno" });
     }
   }
+
+  async refresh(req: Request, res: Response) {
+    try {
+      const { refresh_token } = req.body;
+
+      if (!refresh_token) {
+        return res.status(400).json({ message: "REFRESH_TOKEN_REQUIRED" });
+      }
+
+      const result = await service.refresh(refresh_token);
+
+      return res.json(result);
+    } catch (err: any) {
+      if (
+        err.message === "INVALID_REFRESH_TOKEN" ||
+        err.message === "REFRESH_TOKEN_EXPIRED"
+      ) {
+        return res.status(401).json({ message: err.message });
+      }
+
+      console.error("💥 REFRESH ERROR:", err);
+      return res.status(500).json({ message: "Erro interno" });
+    }
+  }
 }
 
 export default new RecruiterController();

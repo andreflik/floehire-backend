@@ -91,6 +91,7 @@ model recruiters {
   created_at    DateTime @default(now())
 
   jobs          jobs[]
+  recruiter_refresh_tokens recruiter_refresh_tokens[]
 }
 
 model jobs {
@@ -169,4 +170,16 @@ model password_reset_tokens {
   token      String   @unique
   expires_at DateTime
   created_at DateTime @default(now())
+}
+
+model recruiter_refresh_tokens {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  recruiter_id String   @db.Uuid
+  token        String   @unique
+  expires_at   DateTime
+  created_at   DateTime @default(now())
+
+  recruiter recruiters @relation(fields: [recruiter_id], references: [id], onDelete: Cascade)
+
+  @@index([recruiter_id])
 }
