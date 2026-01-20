@@ -10,26 +10,16 @@ class CandidateService {
   constructor(private readonly repository: CandidateRepository) {}
 
   async register(data: RegisterCandidateDTO) {
-    console.log("🔥 [SERVICE] Início register()");
-    console.log("📥 Dados recebidos:", data);
-
     try {
-      console.log("🔍 Checando email...");
       const exists = await this.repository.findByEmail(data.email);
 
       if (exists) {
-        console.log("⛔ EMAIL JÁ EXISTE");
         throw new Error("EMAIL_ALREADY_EXISTS");
       }
 
-      console.log("🔐 Gerando hash da senha...");
       const password_hash = await bcrypt.hash(data.password, 10);
 
-      console.log("🔧 Iniciando transaction...");
-
       const result = await prisma.$transaction(async (tx) => {
-        console.log("🧱 Criando candidato...");
-
         const candidate = await tx.candidates.create({
           data: {
             full_name: data.full_name,
@@ -45,16 +35,9 @@ class CandidateService {
           },
         });
 
-        console.log("✅ Candidato criado:", candidate.id);
-
-        // =====================================================
-        // EXPERIÊNCIAS PROFISSIONAIS
-        // =====================================================
         const experiencesCreated: any[] = [];
 
         if (data.experiences?.length) {
-          console.log(`🚧 Criando ${data.experiences.length} experiências...`);
-
           for (const exp of data.experiences) {
             const saved = await tx.candidate_experiences.create({
               data: {
@@ -68,17 +51,10 @@ class CandidateService {
               },
             });
 
-            console.log("📌 Experiência salva:", saved.id);
             experiencesCreated.push(saved);
           }
         } else {
-          console.log("⚠️ Nenhuma experiência enviada");
         }
-
-        // =====================================================
-        // EDUCAÇÃO
-        // =====================================================
-        console.log("🎓 Criando educação...");
 
         const educationSaved = await tx.candidate_education.create({
           data: {
@@ -92,8 +68,6 @@ class CandidateService {
           },
         });
 
-        console.log("🎓 Educação salva:", educationSaved.id);
-
         return {
           candidate,
           experiences: experiencesCreated,
@@ -101,39 +75,32 @@ class CandidateService {
         };
       });
 
-      console.log("🏁 Resultado final:", result);
-
       return {
         ...result.candidate,
         experiences: result.experiences,
         education: result.education,
       };
     } catch (err) {
-      console.error("💥 ERRO NO SERVICE:", err);
       throw err;
     }
   }
 
   async login(data: LoginCandidateDTO) {
-    console.log("🔐 [SERVICE] Login iniciado:", data.email);
-
     const candidate = await this.repository.findByEmail(data.email);
 
     if (!candidate) {
       throw new Error("INVALID_CREDENTIALS");
     }
 
-    // Verifica a senha
     const isValidPassword = await bcrypt.compare(
       data.password,
-      candidate.password_hash
+      candidate.password_hash,
     );
 
     if (!isValidPassword) {
       throw new Error("INVALID_CREDENTIALS");
     }
 
-    // Gera token JWT
     const token = jwt.sign(
       {
         sub: candidate.id,
@@ -143,7 +110,7 @@ class CandidateService {
       process.env.JWT_SECRET || "dev-secret",
       {
         expiresIn: "1d",
-      }
+      },
     );
 
     return {
@@ -165,12 +132,10 @@ class CandidateService {
 
     const token = crypto.randomUUID();
 
-    // Remove tokens antigos desse email (se existirem)
     await prisma.password_reset_tokens.deleteMany({
       where: { email },
     });
 
-    // Cria novo token
     await prisma.password_reset_tokens.create({
       data: {
         email,
@@ -180,8 +145,6 @@ class CandidateService {
     });
 
     const resetLink = `http://localhost:5173/resetar-senha/${token}`;
-
-    console.log("📧 Link de redefinição enviado:", resetLink);
 
     return resetLink;
   }

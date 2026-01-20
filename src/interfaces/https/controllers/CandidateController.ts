@@ -9,19 +9,13 @@ const service = new CandidateService(repository);
 
 class CandidateController {
   async register(req: Request, res: Response) {
-    console.log("🔥 [CONTROLLER] Chegou requisição:", req.body);
-
     try {
       const data: RegisterCandidateDTO = req.body;
 
       const result = await service.register(data);
 
-      console.log("🎉 [CONTROLLER] Cadastro realizado:", result);
-
       return res.status(201).json(result);
     } catch (error: any) {
-      console.error("💥 [CONTROLLER] ERRO:", error);
-
       if (error.message === "EMAIL_ALREADY_EXISTS") {
         return res.status(400).json({ error: "Email já cadastrado" });
       }

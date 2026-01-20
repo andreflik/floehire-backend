@@ -57,6 +57,42 @@ class PipelineService {
       return updated;
     });
   }
+
+  async getPipelineByJob(jobId: string) {
+    const stages = await prisma.job_stages.findMany({
+      where: { job_id: jobId },
+      orderBy: { stage_order: "asc" },
+      include: {
+        candidates: {
+          include: {
+            candidate: {
+              select: {
+                id: true,
+                full_name: true,
+                email: true,
+                linkedin_url: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return {
+      job_id: jobId,
+      stages: stages.map((stage) => ({
+        id: stage.id,
+        name: stage.name,
+        order: stage.stage_order,
+        candidates: stage.candidates.map((app) => ({
+          application_id: app.id,
+          rating: app.rating,
+          notes: app.notes,
+          candidate: app.candidate,
+        })),
+      })),
+    };
+  }
 }
 
 export default PipelineService;

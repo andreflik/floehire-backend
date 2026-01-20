@@ -11,10 +11,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 🔥 REGISTRA TODAS AS ROTAS AQUI
 app.use(routes);
 
-// rota de teste
 app.get("/", (req, res) => {
   res.send("API FloeHire rodando 🚀");
 });
@@ -25,5 +23,4 @@ app.listen(PORT, () => {
   console.log(`🔥 Backend rodando em http://localhost:${PORT}`);
 });
 
-// middleware de erro SEMPRE por último
 app.use(errorHandlerMiddleware);

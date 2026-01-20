@@ -10,7 +10,7 @@ interface JwtPayload {
 export function recruiterAuthMiddleware(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   const authHeader = req.headers.authorization;
 
@@ -23,7 +23,7 @@ export function recruiterAuthMiddleware(
   try {
     const decoded = jwt.verify(
       token,
-      process.env.JWT_SECRET || "dev-secret"
+      process.env.JWT_SECRET || "dev-secret",
     ) as JwtPayload;
 
     if (decoded.role !== "recruiter") {

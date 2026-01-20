@@ -1,13 +1,13 @@
-import express from "express";
-import { recruiterAuthMiddleware } from "../middlewares/recruiterAuthMiddleware";
-import PipelineController from "../controllers/PipelineController";
+import { Router } from "express";
+import { recruiterAuthMiddleware } from "@/interfaces/https/middlewares/recruiterAuthMiddleware";
+import { PipelineController } from "../controllers/PipelineController";
 
-const router = express.Router();
+const router = Router();
 
-router.patch(
-  "/applications/:applicationId/move",
+router.get(
+  "/jobs/:jobId",
   recruiterAuthMiddleware,
-  PipelineController.move,
+  PipelineController.getJobPipeline,
 );
 
 export default router;
