@@ -5,7 +5,7 @@ import { PipelineController } from "../controllers/PipelineController";
 const router = Router();
 
 router.get(
-  "/jobs/:jobId",
+  "/pipeline/jobs/:jobId",
   recruiterAuthMiddleware,
   PipelineController.getJobPipeline,
 );
