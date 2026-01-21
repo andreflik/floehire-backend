@@ -10,4 +10,10 @@ router.get(
   PipelineController.getJobPipeline,
 );
 
+router.patch(
+  "/pipeline/applications/:applicationId/move",
+  recruiterAuthMiddleware,
+  PipelineController.move,
+);
+
 export default router;

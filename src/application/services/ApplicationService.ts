@@ -27,7 +27,7 @@ class ApplicationService {
 
       // 3️⃣ Encontrar stage inicial
       const firstStage = job.stages.sort(
-        (a, b) => a.stage_order - b.stage_order
+        (a, b) => a.stage_order - b.stage_order,
       )[0];
 
       if (!firstStage) {

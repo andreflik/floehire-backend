@@ -10,7 +10,13 @@ router.post("/", candidateAuthMiddleware, ApplicationController.apply);
 router.get(
   "/jobs/:jobId/applications",
   recruiterAuthMiddleware,
-  ApplicationController.listByJob
+  ApplicationController.listByJob,
+);
+
+router.patch(
+  "/:applicationId/move",
+  recruiterAuthMiddleware,
+  ApplicationController.move,
 );
 
 export default router;

@@ -1,44 +1,84 @@
 import prisma from "@/prisma";
-import { Prisma } from "@prisma/client";
 
 class PipelineService {
-  async moveApplication(
+  async getPipelineByJob(jobId: string, recruiterId: string) {
+    const job = await prisma.jobs.findFirst({
+      where: {
+        id: jobId,
+        recruiter_id: recruiterId,
+      },
+      include: {
+        stages: {
+          orderBy: { stage_order: "asc" },
+          include: {
+            candidates: {
+              include: {
+                candidate: {
+                  select: {
+                    id: true,
+                    full_name: true,
+                    email: true,
+                    linkedin_url: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!job) {
+      throw new Error("JOB_NOT_FOUND");
+    }
+
+    return {
+      job_id: job.id,
+      stages: job.stages.map((stage) => ({
+        id: stage.id,
+        name: stage.name,
+        order: stage.stage_order,
+        candidates: stage.candidates.map((application) => ({
+          application_id: application.id,
+          rating: application.rating,
+          notes: application.notes,
+          candidate: application.candidate,
+        })),
+      })),
+    };
+  }
+
+  async moveCandidate(
     applicationId: string,
     targetStageId: string,
     recruiterId: string,
   ) {
-    return prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      const application = await tx.job_candidates.findUnique({
-        where: { id: applicationId },
-        include: {
-          job: true,
-          current_stage: true,
+    const application = await prisma.job_candidates.findFirst({
+      where: {
+        id: applicationId,
+        job: {
+          recruiter_id: recruiterId,
         },
-      });
+      },
+      include: {
+        current_stage: true,
+      },
+    });
 
-      if (!application) {
-        throw new Error("APPLICATION_NOT_FOUND");
-      }
+    if (!application) {
+      throw new Error("APPLICATION_NOT_FOUND");
+    }
 
-      if (application.job.recruiter_id !== recruiterId) {
-        throw new Error("FORBIDDEN");
-      }
+    const targetStage = await prisma.job_stages.findUnique({
+      where: { id: targetStageId },
+    });
 
-      const targetStage = await tx.job_stages.findUnique({
-        where: { id: targetStageId },
-      });
+    if (!targetStage) {
+      throw new Error("TARGET_STAGE_NOT_FOUND");
+    }
 
-      if (!targetStage || targetStage.job_id !== application.job_id) {
-        throw new Error("INVALID_STAGE");
-      }
-
-      if (application.current_stage_id === targetStageId) {
-        throw new Error("SAME_STAGE");
-      }
-
-      const fromStageName = application.current_stage?.name ?? null;
-
-      const updated = await tx.job_candidates.update({
+    await prisma.$transaction(async (tx) => {
+      await tx.job_candidates.update({
         where: { id: applicationId },
         data: {
           current_stage_id: targetStageId,
@@ -48,50 +88,14 @@ class PipelineService {
       await tx.job_candidate_history.create({
         data: {
           job_candidate_id: applicationId,
-          from_stage_name: fromStageName,
+          from_stage_name: application.current_stage?.name ?? null,
           to_stage_name: targetStage.name,
-          moved_by: recruiterId,
+          moved_by: "recruiter",
         },
       });
-
-      return updated;
-    });
-  }
-
-  async getPipelineByJob(jobId: string) {
-    const stages = await prisma.job_stages.findMany({
-      where: { job_id: jobId },
-      orderBy: { stage_order: "asc" },
-      include: {
-        candidates: {
-          include: {
-            candidate: {
-              select: {
-                id: true,
-                full_name: true,
-                email: true,
-                linkedin_url: true,
-              },
-            },
-          },
-        },
-      },
     });
 
-    return {
-      job_id: jobId,
-      stages: stages.map((stage) => ({
-        id: stage.id,
-        name: stage.name,
-        order: stage.stage_order,
-        candidates: stage.candidates.map((app) => ({
-          application_id: app.id,
-          rating: app.rating,
-          notes: app.notes,
-          candidate: app.candidate,
-        })),
-      })),
-    };
+    return { success: true };
   }
 }
 
