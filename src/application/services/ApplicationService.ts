@@ -87,6 +87,79 @@ class ApplicationService {
       orderBy: { created_at: "asc" },
     });
   }
+
+  async moveStage(params: {
+    applicationId: string;
+    toStageId: string;
+    recruiterId: string;
+  }) {
+    const { applicationId, toStageId, recruiterId } = params;
+
+    return prisma.$transaction(async (tx) => {
+      // 1️⃣ Buscar candidatura + job
+      const application = await tx.job_candidates.findUnique({
+        where: { id: applicationId },
+        include: {
+          job: true,
+          current_stage: true,
+        },
+      });
+
+      if (!application) {
+        throw new Error("APPLICATION_NOT_FOUND");
+      }
+
+      // 2️⃣ Validar se a vaga pertence ao recruiter
+      if (application.job.recruiter_id !== recruiterId) {
+        throw new Error("FORBIDDEN");
+      }
+
+      // 3️⃣ Buscar stage destino
+      const targetStage = await tx.job_stages.findUnique({
+        where: { id: toStageId },
+      });
+
+      if (!targetStage) {
+        throw new Error("INVALID_STAGE");
+      }
+
+      // 4️⃣ Garantir que a stage pertence ao mesmo job
+      if (targetStage.job_id !== application.job_id) {
+        throw new Error("STAGE_NOT_FROM_JOB");
+      }
+
+      // 5️⃣ Atualizar candidatura
+      const updated = await tx.job_candidates.update({
+        where: { id: applicationId },
+        data: {
+          current_stage_id: toStageId,
+        },
+        include: {
+          candidate: {
+            select: {
+              id: true,
+              full_name: true,
+              email: true,
+              linkedin_url: true,
+            },
+          },
+          current_stage: true,
+        },
+      });
+
+      // 6️⃣ Criar histórico
+      await tx.job_candidate_history.create({
+        data: {
+          job_candidate_id: applicationId,
+          from_stage_name: application.current_stage?.name ?? null,
+          to_stage_name: targetStage.name,
+          moved_by: "recruiter",
+        },
+      });
+
+      return updated;
+    });
+  }
 }
 
 export default ApplicationService;

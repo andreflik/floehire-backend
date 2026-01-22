@@ -19,4 +19,18 @@ export class ApplicationController {
     const applications = await service.listByJob(jobId, recruiterId);
     return res.json(applications);
   }
+
+  static async move(req: Request, res: Response) {
+    const recruiterId = req.user!.id;
+    const { applicationId } = req.params;
+    const { toStageId } = req.body;
+
+    const result = await service.moveStage({
+      applicationId,
+      toStageId,
+      recruiterId,
+    });
+
+    return res.json(result);
+  }
 }
