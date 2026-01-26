@@ -5,14 +5,22 @@ const service = new JobService();
 
 class JobController {
   static async create(req: Request, res: Response) {
-    if (!req.user) {
-      return res.status(401).json({ error: "UNAUTHORIZED" });
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "UNAUTHORIZED" });
+      }
+
+      const recruiterId = req.user.id;
+      const job = await service.create(recruiterId, req.body);
+
+      return res.status(201).json(job);
+    } catch (error) {
+      console.error("🔥 ERRO AO CRIAR VAGA:", error);
+      return res.status(400).json({
+        error: "CREATE_JOB_FAILED",
+        details: String(error),
+      });
     }
-
-    const recruiterId = req.user.id;
-
-    const job = await service.create(recruiterId, req.body);
-    return res.status(201).json(job);
   }
 
   static async list(req: Request, res: Response) {

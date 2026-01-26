@@ -39,11 +39,17 @@ export class PipelineController {
   }
 
   static async move(req: Request, res: Response) {
-    const recruiterId = req.user!.id;
-    const { id } = req.params;
-    const { to_stage_id } = req.body;
+    console.log("🔥 MOVE CHAMADO", req.params, req.body);
 
-    const result = await service.moveCandidate(id, to_stage_id, recruiterId);
+    const recruiterId = req.user!.id;
+    const { applicationId } = req.params;
+    const { toStageId } = req.body;
+
+    const result = await service.moveCandidate(
+      applicationId,
+      toStageId,
+      recruiterId,
+    );
 
     return res.json(result);
   }

@@ -1,13 +1,23 @@
+import {
+  job_contract_type,
+  job_work_model,
+  job_hire_type,
+} from "@prisma/client";
+
 export interface CreateJobDTO {
   title: string;
-  description?: string;
-  seniority?: string;
-  work_model?: "ONSITE" | "HYBRID" | "REMOTE";
-  contract_type?: "CLT" | "PJ";
-  hire_type?: "REPLACEMENT" | "NEW_POSITION";
-  city?: string;
-  state?: string;
-  salary_min?: number;
-  salary_max?: number;
-  deadline?: string;
+  description?: string | null;
+
+  seniority: string;
+  contract_type: job_contract_type;
+  work_model: job_work_model;
+
+  hire_type?: job_hire_type | null;
+  city?: string | null;
+  state?: string | null;
+
+  salary_min?: number | null;
+  salary_max?: number | null;
+
+  deadline?: string | null;
 }
