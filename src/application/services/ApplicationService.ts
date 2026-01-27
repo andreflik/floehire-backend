@@ -160,6 +160,32 @@ class ApplicationService {
       return updated;
     });
   }
+
+  async listByCandidate(candidateId: string) {
+    return prisma.job_candidates.findMany({
+      where: {
+        candidate_id: candidateId,
+      },
+      include: {
+        job: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+          },
+        },
+        current_stage: {
+          select: {
+            name: true,
+            stage_order: true,
+          },
+        },
+      },
+      orderBy: {
+        created_at: "desc",
+      },
+    });
+  }
 }
 
 export default ApplicationService;

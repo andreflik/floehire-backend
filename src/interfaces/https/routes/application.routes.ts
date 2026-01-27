@@ -7,6 +7,8 @@ const router = Router();
 
 router.post("/", candidateAuthMiddleware, ApplicationController.apply);
 
+router.get("/me", candidateAuthMiddleware, ApplicationController.listMine);
+
 router.get(
   "/jobs/:jobId/applications",
   recruiterAuthMiddleware,

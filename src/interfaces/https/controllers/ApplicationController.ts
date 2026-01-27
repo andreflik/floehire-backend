@@ -33,4 +33,15 @@ export class ApplicationController {
 
     return res.json(result);
   }
+
+  static async listMine(req: Request, res: Response) {
+    if (!req.user) {
+      return res.status(401).json({ error: "UNAUTHORIZED" });
+    }
+    const candidateId = req.user.id;
+
+    const data = await service.listByCandidate(candidateId);
+
+    return res.json(data);
+  }
 }
