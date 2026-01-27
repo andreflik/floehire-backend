@@ -8,9 +8,20 @@ import pipelineRoutes from "./pipeline.routes";
 
 const router = express.Router();
 
+/**
+ * ============================
+ * 🌍 ROTAS PÚBLICAS
+ * ============================
+ */
+router.use("/jobs", jobRoutes);
+
+/**
+ * ============================
+ * 🔐 ROTAS AUTHENTICADAS
+ * ============================
+ */
 router.use("/", candidateRoutes);
 router.use("/", recruiterRoutes);
-router.use("/jobs", jobRoutes);
 router.use("/applications", applicationRoutes);
 router.use("/", pipelineRoutes);
 

@@ -70,6 +70,28 @@ class JobService {
 
     return job;
   }
+
+  async listPublic() {
+    return prisma.jobs.findMany({
+      where: {
+        status: "OPEN",
+      },
+      orderBy: {
+        created_at: "desc",
+      },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        seniority: true,
+        contract_type: true,
+        work_model: true,
+        city: true,
+        state: true,
+        created_at: true,
+      },
+    });
+  }
 }
 
 export default JobService;

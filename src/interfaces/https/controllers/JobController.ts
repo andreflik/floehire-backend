@@ -44,6 +44,18 @@ class JobController {
     const job = await service.getById(req.params.id, recruiterId);
     return res.json(job);
   }
+
+  static async listPublic(req: Request, res: Response) {
+    try {
+      const jobs = await service.listPublic();
+      return res.json(jobs);
+    } catch (error) {
+      console.error("🔥 ERRO AO LISTAR VAGAS PÚBLICAS:", error);
+      return res.status(500).json({
+        error: "LIST_PUBLIC_JOBS_FAILED",
+      });
+    }
+  }
 }
 
 export default JobController;

@@ -4,6 +4,8 @@ import JobController from "../controllers/JobController";
 
 const router = Router();
 
+router.get("/public", JobController.listPublic);
+
 router.use(recruiterAuthMiddleware);
 
 router.post("/", JobController.create);
