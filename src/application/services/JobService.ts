@@ -71,7 +71,9 @@ class JobService {
     return job;
   }
 
-  async listPublic() {
+  async listPublic(params: { skip: number; take: number }) {
+    const { skip, take } = params;
+
     return prisma.jobs.findMany({
       where: {
         status: "OPEN",
@@ -79,6 +81,8 @@ class JobService {
       orderBy: {
         created_at: "desc",
       },
+      skip,
+      take,
       select: {
         id: true,
         title: true,
@@ -89,6 +93,14 @@ class JobService {
         city: true,
         state: true,
         created_at: true,
+      },
+    });
+  }
+
+  async countPublic() {
+    return prisma.jobs.count({
+      where: {
+        status: "OPEN",
       },
     });
   }

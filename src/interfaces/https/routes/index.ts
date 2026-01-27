@@ -5,6 +5,7 @@ import candidateRoutes from "./candidate.routes";
 import jobRoutes from "./job.routes";
 import applicationRoutes from "./application.routes";
 import pipelineRoutes from "./pipeline.routes";
+import publicJobsRoutes from "./public.jobs.routes";
 
 const router = express.Router();
 
@@ -14,6 +15,7 @@ const router = express.Router();
  * ============================
  */
 router.use("/jobs", jobRoutes);
+router.use("/", publicJobsRoutes);
 
 /**
  * ============================
