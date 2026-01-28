@@ -84,6 +84,11 @@ class JobController {
       total,
     });
   }
+
+  static async showPublic(req: Request, res: Response) {
+    const job = await service.getPublicById(req.params.id);
+    return res.json(job);
+  }
 }
 
 export default JobController;

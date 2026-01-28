@@ -104,6 +104,21 @@ class JobService {
       },
     });
   }
+
+  async getPublicById(jobId: string) {
+    const job = await prisma.jobs.findFirst({
+      where: {
+        id: jobId,
+        status: "OPEN",
+      },
+    });
+
+    if (!job) {
+      throw new Error("JOB_NOT_FOUND");
+    }
+
+    return job;
+  }
 }
 
 export default JobService;

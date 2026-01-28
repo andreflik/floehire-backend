@@ -11,5 +11,6 @@ router.use(recruiterAuthMiddleware);
 router.post("/", JobController.create);
 router.get("/", JobController.list);
 router.get("/:id", JobController.show);
+router.get("/public/:id", JobController.showPublic);
 
 export default router;
