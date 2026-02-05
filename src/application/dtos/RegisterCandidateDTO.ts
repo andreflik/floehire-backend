@@ -1,3 +1,10 @@
+export interface ExperienceDTO {
+  job_title?: string;
+  start_date?: string;
+  end_date?: string;
+  responsibilities?: string;
+}
+
 export interface RegisterCandidateDTO {
   full_name: string;
   email: string;
@@ -18,15 +25,12 @@ export interface RegisterCandidateDTO {
   certificacoes?: string;
   idiomas?: string;
 
-  portfolio_file?: any;
-  portfolio_link?: string;
-
   lgpd_consent: boolean;
 
   experiences?: {
-    job_title: string;
-    start_date: string;
-    end_date: string;
-    responsibilities: string;
+    job_title?: string;
+    start_date?: string;
+    end_date?: string;
+    responsibilities?: string;
   }[];
 }
