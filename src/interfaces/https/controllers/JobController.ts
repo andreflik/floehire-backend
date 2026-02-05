@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import JobService from "@/application/services/JobService";
+import { UpdateJobStatusDTO } from "@/application/dtos/UpdateJobStatusDTO";
 
 const service = new JobService();
 
@@ -99,9 +100,11 @@ class JobController {
 
       const job = await service.update(jobId, recruiterId, req.body);
       return res.json(job);
-    } catch (error) {
+    } catch (error: any) {
       console.error("ERRO AO ATUALIZAR VAGA:", error);
-      return res.status(400).json({ error: "UPDATE_JOB_FAILED" });
+      return res
+        .status(400)
+        .json({ error: error.message || "UPDATE_JOB_FAILED" });
     }
   }
 
@@ -114,9 +117,11 @@ class JobController {
 
       await service.delete(jobId, recruiterId);
       return res.status(204).send();
-    } catch (error) {
+    } catch (error: any) {
       console.error("ERRO AO EXCLUIR VAGA:", error);
-      return res.status(400).json({ error: "DELETE_JOB_FAILED" });
+      return res
+        .status(400)
+        .json({ error: error.message || "DELETE_JOB_FAILED" });
     }
   }
 
@@ -126,7 +131,7 @@ class JobController {
 
       const recruiterId = req.user.id;
       const jobId = req.params.id;
-      const { status } = req.body; // OPEN, PAUSED, CLOSED, ARCHIVED
+      const { status } = req.body as UpdateJobStatusDTO;
 
       const job = await service.updateStatus(jobId, recruiterId, status);
       return res.json(job);

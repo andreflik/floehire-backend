@@ -4,8 +4,8 @@ import {
   job_hire_type,
 } from "@prisma/client";
 
-export interface CreateJobDTO {
-  title: string;
+export interface UpdateJobDTO {
+  title?: string;
   description?: string | null;
 
   seniority?: string | null;

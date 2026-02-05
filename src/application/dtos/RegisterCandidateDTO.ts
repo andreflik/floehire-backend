@@ -6,6 +6,7 @@ export interface RegisterCandidateDTO {
   phone?: string;
   city?: string;
   state?: string;
+
   linkedin_url?: string;
   github_url?: string;
   portfolio_url?: string;

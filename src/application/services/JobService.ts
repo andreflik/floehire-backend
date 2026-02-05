@@ -1,6 +1,7 @@
 import prisma from "@/prisma";
 import { CreateJobDTO } from "../dtos/CreateJobDTO";
 import { job_status } from "@prisma/client";
+import { UpdateJobDTO } from "../dtos/UpdateJobDTO";
 
 const DEFAULT_STAGES = [
   { name: "Applied", order: 1 },
@@ -98,19 +99,15 @@ class JobService {
     return job;
   }
 
-  async update(jobId: string, recruiterId: string, data: any) {
+  async update(jobId: string, recruiterId: string, data: UpdateJobDTO) {
     const job = await prisma.jobs.findFirst({
       where: { id: jobId, recruiter_id: recruiterId },
     });
 
     if (!job) throw new Error("JOB_NOT_FOUND");
 
-    if (job.status === "CLOSED") {
-      throw new Error("JOB_CLOSED_CANNOT_EDIT");
-    }
-
-    if (job.status === "ARCHIVED") {
-      throw new Error("JOB_ARCHIVED_CANNOT_EDIT");
+    if (job.status === "CLOSED" || job.status === "ARCHIVED") {
+      throw new Error("JOB_NOT_EDITABLE");
     }
 
     return prisma.jobs.update({
