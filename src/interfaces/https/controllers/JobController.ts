@@ -89,6 +89,52 @@ class JobController {
     const job = await service.getPublicById(req.params.id);
     return res.json(job);
   }
+
+  static async update(req: Request, res: Response) {
+    try {
+      if (!req.user) return res.status(401).json({ error: "UNAUTHORIZED" });
+
+      const recruiterId = req.user.id;
+      const jobId = req.params.id;
+
+      const job = await service.update(jobId, recruiterId, req.body);
+      return res.json(job);
+    } catch (error) {
+      console.error("ERRO AO ATUALIZAR VAGA:", error);
+      return res.status(400).json({ error: "UPDATE_JOB_FAILED" });
+    }
+  }
+
+  static async delete(req: Request, res: Response) {
+    try {
+      if (!req.user) return res.status(401).json({ error: "UNAUTHORIZED" });
+
+      const recruiterId = req.user.id;
+      const jobId = req.params.id;
+
+      await service.delete(jobId, recruiterId);
+      return res.status(204).send();
+    } catch (error) {
+      console.error("ERRO AO EXCLUIR VAGA:", error);
+      return res.status(400).json({ error: "DELETE_JOB_FAILED" });
+    }
+  }
+
+  static async updateStatus(req: Request, res: Response) {
+    try {
+      if (!req.user) return res.status(401).json({ error: "UNAUTHORIZED" });
+
+      const recruiterId = req.user.id;
+      const jobId = req.params.id;
+      const { status } = req.body; // OPEN, PAUSED, CLOSED, ARCHIVED
+
+      const job = await service.updateStatus(jobId, recruiterId, status);
+      return res.json(job);
+    } catch (error) {
+      console.error("ERRO AO ATUALIZAR STATUS:", error);
+      return res.status(400).json({ error: "UPDATE_STATUS_FAILED" });
+    }
+  }
 }
 
 export default JobController;

@@ -13,4 +13,8 @@ router.get("/", JobController.list);
 router.get("/:id", JobController.show);
 router.get("/public/:id", JobController.showPublic);
 
+router.put("/:id", JobController.update);
+router.delete("/:id", JobController.delete);
+router.patch("/:id/status", JobController.updateStatus);
+
 export default router;

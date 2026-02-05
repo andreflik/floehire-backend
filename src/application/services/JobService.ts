@@ -1,5 +1,6 @@
 import prisma from "@/prisma";
 import { CreateJobDTO } from "../dtos/CreateJobDTO";
+import { job_status } from "@prisma/client";
 
 const DEFAULT_STAGES = [
   { name: "Applied", order: 1 },
@@ -13,7 +14,6 @@ const DEFAULT_STAGES = [
 class JobService {
   async create(recruiterId: string, data: CreateJobDTO) {
     return prisma.$transaction(async (tx) => {
-      // 1️⃣ Criar vaga
       const job = await tx.jobs.create({
         data: {
           recruiter_id: recruiterId,
@@ -31,7 +31,6 @@ class JobService {
         },
       });
 
-      // 2️⃣ Criar pipeline padrão
       for (const stage of DEFAULT_STAGES) {
         await tx.job_stages.create({
           data: {
@@ -55,32 +54,18 @@ class JobService {
 
   async getById(jobId: string, recruiterId: string) {
     const job = await prisma.jobs.findFirst({
-      where: {
-        id: jobId,
-        recruiter_id: recruiterId,
-      },
-      include: {
-        stages: { orderBy: { stage_order: "asc" } },
-      },
+      where: { id: jobId, recruiter_id: recruiterId },
+      include: { stages: { orderBy: { stage_order: "asc" } } },
     });
 
-    if (!job) {
-      throw new Error("JOB_NOT_FOUND");
-    }
-
+    if (!job) throw new Error("JOB_NOT_FOUND");
     return job;
   }
 
-  async listPublic(params: { skip: number; take: number }) {
-    const { skip, take } = params;
-
+  async listPublic({ skip, take }: { skip: number; take: number }) {
     return prisma.jobs.findMany({
-      where: {
-        status: "OPEN",
-      },
-      orderBy: {
-        created_at: "desc",
-      },
+      where: { status: "OPEN" },
+      orderBy: { created_at: "desc" },
       skip,
       take,
       select: {
@@ -98,26 +83,66 @@ class JobService {
   }
 
   async countPublic() {
-    return prisma.jobs.count({
-      where: {
-        status: "OPEN",
-      },
-    });
+    return prisma.jobs.count({ where: { status: "OPEN" } });
   }
 
   async getPublicById(jobId: string) {
     const job = await prisma.jobs.findFirst({
-      where: {
-        id: jobId,
-        status: "OPEN",
-      },
+      where: { id: jobId, status: "OPEN" },
     });
 
-    if (!job) {
-      throw new Error("JOB_NOT_FOUND");
-    }
-
+    if (!job) throw new Error("JOB_NOT_FOUND");
     return job;
+  }
+
+  async update(jobId: string, recruiterId: string, data: any) {
+    const job = await prisma.jobs.findFirst({
+      where: { id: jobId, recruiter_id: recruiterId },
+    });
+
+    if (!job) throw new Error("JOB_NOT_FOUND");
+
+    return prisma.jobs.update({
+      where: { id: jobId },
+      data: {
+        title: data.title,
+        description: data.description,
+        seniority: data.seniority,
+        work_model: data.work_model,
+        contract_type: data.contract_type,
+        hire_type: data.hire_type,
+        city: data.city,
+        state: data.state,
+        salary_min: data.salary_min,
+        salary_max: data.salary_max,
+        deadline: data.deadline ? new Date(data.deadline) : null,
+      },
+    });
+  }
+
+  async delete(jobId: string, recruiterId: string) {
+    const job = await prisma.jobs.findFirst({
+      where: { id: jobId, recruiter_id: recruiterId },
+    });
+
+    if (!job) throw new Error("JOB_NOT_FOUND");
+
+    await prisma.jobs.delete({
+      where: { id: jobId },
+    });
+  }
+
+  async updateStatus(jobId: string, recruiterId: string, status: job_status) {
+    const job = await prisma.jobs.findFirst({
+      where: { id: jobId, recruiter_id: recruiterId },
+    });
+
+    if (!job) throw new Error("JOB_NOT_FOUND");
+
+    return prisma.jobs.update({
+      where: { id: jobId },
+      data: { status },
+    });
   }
 }
 
