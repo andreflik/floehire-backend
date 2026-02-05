@@ -47,7 +47,10 @@ class JobService {
 
   async listByRecruiter(recruiterId: string) {
     return prisma.jobs.findMany({
-      where: { recruiter_id: recruiterId },
+      where: {
+        recruiter_id: recruiterId,
+        status: { not: "ARCHIVED" },
+      },
       orderBy: { created_at: "desc" },
     });
   }
@@ -102,6 +105,14 @@ class JobService {
 
     if (!job) throw new Error("JOB_NOT_FOUND");
 
+    if (job.status === "CLOSED") {
+      throw new Error("JOB_CLOSED_CANNOT_EDIT");
+    }
+
+    if (job.status === "ARCHIVED") {
+      throw new Error("JOB_ARCHIVED_CANNOT_EDIT");
+    }
+
     return prisma.jobs.update({
       where: { id: jobId },
       data: {
@@ -127,8 +138,13 @@ class JobService {
 
     if (!job) throw new Error("JOB_NOT_FOUND");
 
-    await prisma.jobs.delete({
+    if (job.status === "ARCHIVED") {
+      throw new Error("JOB_ALREADY_ARCHIVED");
+    }
+
+    return prisma.jobs.update({
       where: { id: jobId },
+      data: { status: "ARCHIVED" },
     });
   }
 
@@ -138,6 +154,10 @@ class JobService {
     });
 
     if (!job) throw new Error("JOB_NOT_FOUND");
+
+    if (job.status === "ARCHIVED") {
+      throw new Error("JOB_ARCHIVED_CANNOT_CHANGE_STATUS");
+    }
 
     return prisma.jobs.update({
       where: { id: jobId },
