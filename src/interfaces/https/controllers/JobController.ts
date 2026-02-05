@@ -1,26 +1,38 @@
 import { Request, Response } from "express";
 import JobService from "@/application/services/JobService";
 import { UpdateJobStatusDTO } from "@/application/dtos/UpdateJobStatusDTO";
+import {
+  createJobSchema,
+  updateJobSchema,
+  updateJobStatusSchema,
+} from "@/application/validators/jobSchemas";
+import { ZodError } from "zod";
 
 const service = new JobService();
 
 class JobController {
   static async create(req: Request, res: Response) {
     try {
-      if (!req.user) {
-        return res.status(401).json({ error: "UNAUTHORIZED" });
-      }
+      if (!req.user) return res.status(401).json({ error: "UNAUTHORIZED" });
 
       const recruiterId = req.user.id;
-      const job = await service.create(recruiterId, req.body);
 
+      const payload = createJobSchema.parse(req.body);
+
+      const job = await service.create(recruiterId, payload);
       return res.status(201).json(job);
-    } catch (error) {
+    } catch (error: any) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({
+          error: "VALIDATION_ERROR",
+          details: error.flatten(),
+        });
+      }
+
       console.error("🔥 ERRO AO CRIAR VAGA:", error);
-      return res.status(400).json({
-        error: "CREATE_JOB_FAILED",
-        details: String(error),
-      });
+      return res
+        .status(400)
+        .json({ error: error.message || "CREATE_JOB_FAILED" });
     }
   }
 
@@ -98,9 +110,18 @@ class JobController {
       const recruiterId = req.user.id;
       const jobId = req.params.id;
 
-      const job = await service.update(jobId, recruiterId, req.body);
+      const payload = updateJobSchema.parse(req.body);
+
+      const job = await service.update(jobId, recruiterId, payload);
       return res.json(job);
     } catch (error: any) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({
+          error: "VALIDATION_ERROR",
+          details: error.flatten(),
+        });
+      }
+
       console.error("ERRO AO ATUALIZAR VAGA:", error);
       return res
         .status(400)
@@ -131,13 +152,23 @@ class JobController {
 
       const recruiterId = req.user.id;
       const jobId = req.params.id;
-      const { status } = req.body as UpdateJobStatusDTO;
+
+      const { status } = updateJobStatusSchema.parse(req.body);
 
       const job = await service.updateStatus(jobId, recruiterId, status);
       return res.json(job);
-    } catch (error) {
+    } catch (error: any) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({
+          error: "VALIDATION_ERROR",
+          details: error.flatten(),
+        });
+      }
+
       console.error("ERRO AO ATUALIZAR STATUS:", error);
-      return res.status(400).json({ error: "UPDATE_STATUS_FAILED" });
+      return res
+        .status(400)
+        .json({ error: error.message || "UPDATE_STATUS_FAILED" });
     }
   }
 }
