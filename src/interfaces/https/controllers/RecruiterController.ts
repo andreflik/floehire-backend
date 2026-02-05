@@ -34,12 +34,7 @@ class RecruiterController {
     try {
       const { refresh_token } = req.body;
 
-      if (!refresh_token) {
-        return res.status(400).json({ message: "REFRESH_TOKEN_REQUIRED" });
-      }
-
       const result = await service.refresh(refresh_token);
-
       return res.json(result);
     } catch (err: any) {
       if (

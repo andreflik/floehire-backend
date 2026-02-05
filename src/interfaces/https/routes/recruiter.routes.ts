@@ -4,6 +4,7 @@ import { validateBody } from "../middlewares/validateBody";
 import {
   recruiterRegisterSchema,
   recruiterLoginSchema,
+  recruiterRefreshSchema,
 } from "@/application/validators/recruiterSchema";
 
 const router = Router();
@@ -18,6 +19,12 @@ router.post(
   "/recruiter/login",
   validateBody(recruiterLoginSchema),
   RecruiterController.login,
+);
+
+router.post(
+  "/recruiter/refresh",
+  validateBody(recruiterRefreshSchema),
+  RecruiterController.refresh,
 );
 
 export default router;
