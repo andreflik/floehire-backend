@@ -1,53 +1,35 @@
 import { Request, Response } from "express";
 import { RecruiterService } from "@/application/services/RecruiterService";
+import {
+  recruiterRegisterSchema,
+  recruiterLoginSchema,
+  recruiterRefreshSchema,
+} from "@/application/validators/recruiterSchema";
+import { asyncHandler } from "@/interfaces/https/utils/asyncHandler";
 
 const service = new RecruiterService();
 
 class RecruiterController {
-  async register(req: Request, res: Response) {
-    try {
-      const result = await service.register(req.body);
-      return res.status(201).json(result);
-    } catch (err: any) {
-      if (err.message === "RECRUITER_ALREADY_EXISTS") {
-        return res.status(409).json({ message: "Empresa já cadastrada" });
-      }
+  static register = asyncHandler(async (req: Request, res: Response) => {
+    const payload = recruiterRegisterSchema.parse(req.body);
 
-      return res.status(500).json({ message: "Erro interno" });
-    }
-  }
+    const result = await service.register(payload);
+    return res.status(201).json(result);
+  });
 
-  async login(req: Request, res: Response) {
-    try {
-      const result = await service.login(req.body);
-      return res.json(result);
-    } catch (err: any) {
-      if (err.message === "INVALID_CREDENTIALS") {
-        return res.status(401).json({ message: "Credenciais inválidas" });
-      }
+  static login = asyncHandler(async (req: Request, res: Response) => {
+    const payload = recruiterLoginSchema.parse(req.body);
 
-      return res.status(500).json({ message: "Erro interno" });
-    }
-  }
+    const result = await service.login(payload);
+    return res.json(result);
+  });
 
-  async refresh(req: Request, res: Response) {
-    try {
-      const { refresh_token } = req.body;
+  static refresh = asyncHandler(async (req: Request, res: Response) => {
+    const { refresh_token } = recruiterRefreshSchema.parse(req.body);
 
-      const result = await service.refresh(refresh_token);
-      return res.json(result);
-    } catch (err: any) {
-      if (
-        err.message === "INVALID_REFRESH_TOKEN" ||
-        err.message === "REFRESH_TOKEN_EXPIRED"
-      ) {
-        return res.status(401).json({ message: err.message });
-      }
-
-      console.error("💥 REFRESH ERROR:", err);
-      return res.status(500).json({ message: "Erro interno" });
-    }
-  }
+    const result = await service.refresh(refresh_token);
+    return res.json(result);
+  });
 }
 
 export default new RecruiterController();

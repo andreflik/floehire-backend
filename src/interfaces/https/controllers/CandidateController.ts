@@ -7,42 +7,43 @@ import {
   forgotPasswordSchema,
 } from "@/application/validators/candidateSchemas";
 import { resetPasswordSchema } from "@/application/validators/resetPaswordSchema";
+import { asyncHandler } from "@/interfaces/https/utils/asyncHandler";
 
 const repository = new PrismaCandidateRepository();
 const service = new CandidateService(repository);
 
 class CandidateController {
-  async register(req: Request, res: Response) {
-    const data = registerCandidateSchema.parse(req.body);
+  static register = asyncHandler(async (req: Request, res: Response) => {
+    const payload = registerCandidateSchema.parse(req.body);
 
-    const result = await service.register(data);
+    const result = await service.register(payload);
 
     return res.status(201).json(result);
-  }
+  });
 
-  async login(req: Request, res: Response) {
-    const data = loginCandidateSchema.parse(req.body);
+  static login = asyncHandler(async (req: Request, res: Response) => {
+    const payload = loginCandidateSchema.parse(req.body);
 
-    const result = await service.login(data);
+    const result = await service.login(payload);
 
     return res.status(200).json(result);
-  }
+  });
 
-  async forgotPassword(req: Request, res: Response) {
+  static forgotPassword = asyncHandler(async (req: Request, res: Response) => {
     const { email } = forgotPasswordSchema.parse(req.body);
 
     await service.forgotPassword(email);
 
     return res.json({ message: "E-mail enviado com instruções." });
-  }
+  });
 
-  async resetPassword(req: Request, res: Response) {
-    const data = resetPasswordSchema.parse(req.body);
+  static resetPassword = asyncHandler(async (req: Request, res: Response) => {
+    const payload = resetPasswordSchema.parse(req.body);
 
-    await service.resetPassword(data.token, data.newPassword);
+    await service.resetPassword(payload.token, payload.newPassword);
 
     return res.json({ message: "Senha alterada com sucesso!" });
-  }
+  });
 }
 
 export default new CandidateController();

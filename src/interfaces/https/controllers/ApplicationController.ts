@@ -7,27 +7,28 @@ import {
   evaluateApplicationSchema,
   jobIdParamSchema,
 } from "@/application/validators/applicationSchemas";
+import { asyncHandler } from "@/interfaces/https/utils/asyncHandler";
 
 const service = new ApplicationService();
 
 export class ApplicationController {
-  static async apply(req: Request, res: Response) {
+  static apply = asyncHandler(async (req: Request, res: Response) => {
     const candidateId = req.user!.id;
     const { job_id } = applySchema.parse(req.body);
 
     const application = await service.apply(candidateId, job_id);
     return res.status(201).json(application);
-  }
+  });
 
-  static async listByJob(req: Request, res: Response) {
+  static listByJob = asyncHandler(async (req: Request, res: Response) => {
     const recruiterId = req.user!.id;
     const { jobId } = jobIdParamSchema.parse(req.params);
 
     const applications = await service.listByJob(jobId, recruiterId);
     return res.json(applications);
-  }
+  });
 
-  static async move(req: Request, res: Response) {
+  static move = asyncHandler(async (req: Request, res: Response) => {
     const recruiterId = req.user!.id;
 
     const { applicationId } = applicationIdParamSchema.parse(req.params);
@@ -40,15 +41,15 @@ export class ApplicationController {
     });
 
     return res.json(result);
-  }
+  });
 
-  static async listMine(req: Request, res: Response) {
+  static listMine = asyncHandler(async (req: Request, res: Response) => {
     const candidateId = req.user!.id;
     const data = await service.listByCandidate(candidateId);
     return res.json(data);
-  }
+  });
 
-  static async evaluate(req: Request, res: Response) {
+  static evaluate = asyncHandler(async (req: Request, res: Response) => {
     const recruiterId = req.user!.id;
     const { applicationId } = applicationIdParamSchema.parse(req.params);
     const payload = evaluateApplicationSchema.parse(req.body);
@@ -60,9 +61,9 @@ export class ApplicationController {
     });
 
     return res.json(result);
-  }
+  });
 
-  static async history(req: Request, res: Response) {
+  static history = asyncHandler(async (req: Request, res: Response) => {
     const recruiterId = req.user!.id;
     const { applicationId } = applicationIdParamSchema.parse(req.params);
 
@@ -71,13 +72,13 @@ export class ApplicationController {
       recruiterId,
     );
     return res.json(history);
-  }
+  });
 
-  static async remove(req: Request, res: Response) {
+  static remove = asyncHandler(async (req: Request, res: Response) => {
     const recruiterId = req.user!.id;
     const { applicationId } = applicationIdParamSchema.parse(req.params);
 
     await service.removeApplication(applicationId, recruiterId);
     return res.status(204).send();
-  }
+  });
 }

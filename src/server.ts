@@ -14,8 +14,6 @@ app.use(express.json());
 
 app.use(routes);
 
-app.use(errorHandler);
-
 app.get("/", (req, res) => {
   res.send("API FloeHire rodando 🚀");
 });
@@ -26,4 +24,4 @@ app.listen(PORT, () => {
   console.log(`🔥 Backend rodando em http://localhost:${PORT}`);
 });
 
-app.use(errorHandlerMiddleware);
+app.use(errorHandler);
