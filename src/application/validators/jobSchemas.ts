@@ -68,3 +68,12 @@ export const updateJobSchema = z
 export const updateJobStatusSchema = z.object({
   status: z.nativeEnum(job_status),
 });
+
+export const listPublicQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(50).default(10),
+});
+
+export const jobIdParamSchema = z.object({
+  id: z.string().uuid("Invalid job id"),
+});

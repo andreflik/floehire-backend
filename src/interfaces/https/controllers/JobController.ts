@@ -5,6 +5,8 @@ import {
   createJobSchema,
   updateJobSchema,
   updateJobStatusSchema,
+  listPublicQuerySchema,
+  jobIdParamSchema,
 } from "@/application/validators/jobSchemas";
 import { ZodError } from "zod";
 
@@ -48,36 +50,60 @@ class JobController {
   }
 
   static async show(req: Request, res: Response) {
-    if (!req.user) {
-      return res.status(401).json({ error: "UNAUTHORIZED" });
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "UNAUTHORIZED" });
+      }
+
+      const recruiterId = req.user.id;
+      const { id: jobId } = jobIdParamSchema.parse(req.params);
+
+      const job = await service.getById(jobId, recruiterId);
+      return res.json(job);
+    } catch (error: any) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({
+          error: "VALIDATION_ERROR",
+          details: error.flatten(),
+        });
+      }
+
+      console.error("ERRO AO BUSCAR VAGA:", error);
+      return res.status(400).json({ error: error.message || "GET_JOB_FAILED" });
     }
-
-    const recruiterId = req.user.id;
-
-    const job = await service.getById(req.params.id, recruiterId);
-    return res.json(job);
   }
 
   static async listPublic(req: Request, res: Response) {
-    const page = Number(req.query.page ?? 1);
-    const limit = Number(req.query.limit ?? 10);
+    try {
+      const { page, limit } = listPublicQuerySchema.parse(req.query);
 
-    const skip = (page - 1) * limit;
+      const skip = (page - 1) * limit;
 
-    const [jobs, total] = await Promise.all([
-      service.listPublic({ skip, take: limit }),
-      service.countPublic(),
-    ]);
+      const [jobs, total] = await Promise.all([
+        service.listPublic({ skip, take: limit }),
+        service.countPublic(),
+      ]);
 
-    return res.json({
-      data: jobs,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
-    });
+      return res.json({
+        data: jobs,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+      });
+    } catch (error: any) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({
+          error: "VALIDATION_ERROR",
+          details: error.flatten(),
+        });
+      }
+
+      console.error("ERRO AO LISTAR VAGAS PÚBLICAS:", error);
+      return res.status(500).json({ error: "LIST_PUBLIC_FAILED" });
+    }
   }
 
   static async publicList(req: Request, res: Response) {
@@ -99,8 +125,24 @@ class JobController {
   }
 
   static async showPublic(req: Request, res: Response) {
-    const job = await service.getPublicById(req.params.id);
-    return res.json(job);
+    try {
+      const { id: jobId } = jobIdParamSchema.parse(req.params);
+
+      const job = await service.getPublicById(jobId);
+      return res.json(job);
+    } catch (error: any) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({
+          error: "VALIDATION_ERROR",
+          details: error.flatten(),
+        });
+      }
+
+      console.error("ERRO AO BUSCAR VAGA PÚBLICA:", error);
+      return res
+        .status(400)
+        .json({ error: error.message || "GET_PUBLIC_JOB_FAILED" });
+    }
   }
 
   static async update(req: Request, res: Response) {
@@ -108,7 +150,7 @@ class JobController {
       if (!req.user) return res.status(401).json({ error: "UNAUTHORIZED" });
 
       const recruiterId = req.user.id;
-      const jobId = req.params.id;
+      const { id: jobId } = jobIdParamSchema.parse(req.params);
 
       const payload = updateJobSchema.parse(req.body);
 
@@ -134,7 +176,7 @@ class JobController {
       if (!req.user) return res.status(401).json({ error: "UNAUTHORIZED" });
 
       const recruiterId = req.user.id;
-      const jobId = req.params.id;
+      const { id: jobId } = jobIdParamSchema.parse(req.params);
 
       await service.delete(jobId, recruiterId);
       return res.status(204).send();
@@ -151,7 +193,7 @@ class JobController {
       if (!req.user) return res.status(401).json({ error: "UNAUTHORIZED" });
 
       const recruiterId = req.user.id;
-      const jobId = req.params.id;
+      const { id: jobId } = jobIdParamSchema.parse(req.params);
 
       const { status } = updateJobStatusSchema.parse(req.body);
 
