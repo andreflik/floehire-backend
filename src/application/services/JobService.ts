@@ -1,7 +1,8 @@
 import prisma from "@/prisma";
 import { CreateJobDTO } from "../dtos/CreateJobDTO";
-import { job_status } from "@prisma/client";
 import { UpdateJobDTO } from "../dtos/UpdateJobDTO";
+import { job_status } from "@prisma/client";
+import { NotFoundError } from "@/application/errors/NotFoundError";
 
 const DEFAULT_STAGES = [
   { name: "Applied", order: 1 },
@@ -19,15 +20,15 @@ class JobService {
         data: {
           recruiter_id: recruiterId,
           title: data.title,
-          description: data.description,
-          seniority: data.seniority,
-          work_model: data.work_model,
-          contract_type: data.contract_type,
-          hire_type: data.hire_type,
-          city: data.city,
-          state: data.state,
-          salary_min: data.salary_min,
-          salary_max: data.salary_max,
+          description: data.description ?? null,
+          seniority: data.seniority ?? null,
+          work_model: data.work_model ?? null,
+          contract_type: data.contract_type ?? null,
+          hire_type: data.hire_type ?? null,
+          city: data.city ?? null,
+          state: data.state ?? null,
+          salary_min: data.salary_min ?? null,
+          salary_max: data.salary_max ?? null,
           deadline: data.deadline ? new Date(data.deadline) : null,
         },
       });
@@ -50,7 +51,7 @@ class JobService {
     return prisma.jobs.findMany({
       where: {
         recruiter_id: recruiterId,
-        status: { not: "ARCHIVED" },
+        status: { not: job_status.ARCHIVED },
       },
       orderBy: { created_at: "desc" },
     });
@@ -62,13 +63,16 @@ class JobService {
       include: { stages: { orderBy: { stage_order: "asc" } } },
     });
 
-    if (!job) throw new Error("JOB_NOT_FOUND");
+    if (!job) {
+      throw new NotFoundError("JOB_NOT_FOUND", "Vaga não encontrada");
+    }
+
     return job;
   }
 
   async listPublic({ skip, take }: { skip: number; take: number }) {
     return prisma.jobs.findMany({
-      where: { status: "OPEN" },
+      where: { status: job_status.OPEN },
       orderBy: { created_at: "desc" },
       skip,
       take,
@@ -87,15 +91,20 @@ class JobService {
   }
 
   async countPublic() {
-    return prisma.jobs.count({ where: { status: "OPEN" } });
+    return prisma.jobs.count({
+      where: { status: job_status.OPEN },
+    });
   }
 
   async getPublicById(jobId: string) {
     const job = await prisma.jobs.findFirst({
-      where: { id: jobId, status: "OPEN" },
+      where: { id: jobId, status: job_status.OPEN },
     });
 
-    if (!job) throw new Error("JOB_NOT_FOUND");
+    if (!job) {
+      throw new NotFoundError("JOB_NOT_FOUND", "Vaga não encontrada");
+    }
+
     return job;
   }
 
@@ -104,9 +113,14 @@ class JobService {
       where: { id: jobId, recruiter_id: recruiterId },
     });
 
-    if (!job) throw new Error("JOB_NOT_FOUND");
+    if (!job) {
+      throw new NotFoundError("JOB_NOT_FOUND", "Vaga não encontrada");
+    }
 
-    if (job.status === "CLOSED" || job.status === "ARCHIVED") {
+    if (
+      job.status === job_status.CLOSED ||
+      job.status === job_status.ARCHIVED
+    ) {
       throw new Error("JOB_NOT_EDITABLE");
     }
 
@@ -114,16 +128,16 @@ class JobService {
       where: { id: jobId },
       data: {
         title: data.title,
-        description: data.description,
-        seniority: data.seniority,
-        work_model: data.work_model,
-        contract_type: data.contract_type,
-        hire_type: data.hire_type,
-        city: data.city,
-        state: data.state,
-        salary_min: data.salary_min,
-        salary_max: data.salary_max,
-        deadline: data.deadline ? new Date(data.deadline) : null,
+        description: data.description ?? undefined,
+        seniority: data.seniority ?? undefined,
+        work_model: data.work_model ?? undefined,
+        contract_type: data.contract_type ?? undefined,
+        hire_type: data.hire_type ?? undefined,
+        city: data.city ?? undefined,
+        state: data.state ?? undefined,
+        salary_min: data.salary_min ?? undefined,
+        salary_max: data.salary_max ?? undefined,
+        deadline: data.deadline ? new Date(data.deadline) : undefined,
       },
     });
   }
@@ -133,15 +147,17 @@ class JobService {
       where: { id: jobId, recruiter_id: recruiterId },
     });
 
-    if (!job) throw new Error("JOB_NOT_FOUND");
+    if (!job) {
+      throw new NotFoundError("JOB_NOT_FOUND", "Vaga não encontrada");
+    }
 
-    if (job.status === "ARCHIVED") {
+    if (job.status === job_status.ARCHIVED) {
       throw new Error("JOB_ALREADY_ARCHIVED");
     }
 
     return prisma.jobs.update({
       where: { id: jobId },
-      data: { status: "ARCHIVED" },
+      data: { status: job_status.ARCHIVED },
     });
   }
 
@@ -150,10 +166,16 @@ class JobService {
       where: { id: jobId, recruiter_id: recruiterId },
     });
 
-    if (!job) throw new Error("JOB_NOT_FOUND");
+    if (!job) {
+      throw new NotFoundError("JOB_NOT_FOUND", "Vaga não encontrada");
+    }
 
-    if (job.status === "ARCHIVED") {
+    if (job.status === job_status.ARCHIVED) {
       throw new Error("JOB_ARCHIVED_CANNOT_CHANGE_STATUS");
+    }
+
+    if (job.status === status) {
+      return job;
     }
 
     return prisma.jobs.update({
