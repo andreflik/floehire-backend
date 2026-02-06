@@ -1,19 +1,24 @@
 import prisma from "@/prisma";
+import { NotFoundError } from "@/application/errors/NotFoundError";
+import { ForbiddenError } from "@/application/errors/ForbiddenError";
+import { AppError } from "@/application/errors/AppError";
 
 class ApplicationService {
   async apply(candidateId: string, jobId: string) {
     return prisma.$transaction(async (tx) => {
-      // 1️⃣ Buscar vaga
       const job = await tx.jobs.findUnique({
         where: { id: jobId },
         include: { stages: true },
       });
 
       if (!job || job.status !== "OPEN") {
-        throw new Error("JOB_NOT_AVAILABLE");
+        throw new AppError(
+          "Vaga não disponível para candidatura",
+          "JOB_NOT_AVAILABLE",
+          400,
+        );
       }
 
-      // 2️⃣ Verificar se já aplicou
       const alreadyApplied = await tx.job_candidates.findFirst({
         where: {
           job_id: jobId,
@@ -22,19 +27,25 @@ class ApplicationService {
       });
 
       if (alreadyApplied) {
-        throw new Error("ALREADY_APPLIED");
+        throw new AppError(
+          "Candidato já se aplicou para esta vaga",
+          "ALREADY_APPLIED",
+          409,
+        );
       }
 
-      // 3️⃣ Encontrar stage inicial
       const firstStage = job.stages.sort(
         (a, b) => a.stage_order - b.stage_order,
       )[0];
 
       if (!firstStage) {
-        throw new Error("PIPELINE_NOT_CONFIGURED");
+        throw new AppError(
+          "Pipeline da vaga não está configurado",
+          "PIPELINE_NOT_CONFIGURED",
+          500,
+        );
       }
 
-      // 4️⃣ Criar candidatura
       const application = await tx.job_candidates.create({
         data: {
           job_id: jobId,
@@ -43,7 +54,6 @@ class ApplicationService {
         },
       });
 
-      // 5️⃣ Criar histórico inicial
       await tx.job_candidate_history.create({
         data: {
           job_candidate_id: application.id,
@@ -66,7 +76,7 @@ class ApplicationService {
     });
 
     if (!job) {
-      throw new Error("JOB_NOT_FOUND");
+      throw new NotFoundError("JOB_NOT_FOUND", "Vaga não encontrada");
     }
 
     return prisma.job_candidates.findMany({
@@ -96,7 +106,6 @@ class ApplicationService {
     const { applicationId, toStageId, recruiterId } = params;
 
     return prisma.$transaction(async (tx) => {
-      // 1️⃣ Buscar candidatura + job
       const application = await tx.job_candidates.findUnique({
         where: { id: applicationId },
         include: {
@@ -106,29 +115,35 @@ class ApplicationService {
       });
 
       if (!application) {
-        throw new Error("APPLICATION_NOT_FOUND");
+        throw new NotFoundError(
+          "APPLICATION_NOT_FOUND",
+          "Candidatura não encontrada",
+        );
       }
 
-      // 2️⃣ Validar se a vaga pertence ao recruiter
       if (application.job.recruiter_id !== recruiterId) {
-        throw new Error("FORBIDDEN");
+        throw new ForbiddenError(
+          "FORBIDDEN",
+          "Você não tem permissão para mover esta candidatura",
+        );
       }
 
-      // 3️⃣ Buscar stage destino
       const targetStage = await tx.job_stages.findUnique({
         where: { id: toStageId },
       });
 
       if (!targetStage) {
-        throw new Error("INVALID_STAGE");
+        throw new NotFoundError("INVALID_STAGE", "Etapa não encontrada");
       }
 
-      // 4️⃣ Garantir que a stage pertence ao mesmo job
       if (targetStage.job_id !== application.job_id) {
-        throw new Error("STAGE_NOT_FROM_JOB");
+        throw new AppError(
+          "Stage não pertence a esta vaga",
+          "STAGE_NOT_FROM_JOB",
+          400,
+        );
       }
 
-      // 5️⃣ Atualizar candidatura
       const updated = await tx.job_candidates.update({
         where: { id: applicationId },
         data: {
@@ -147,7 +162,6 @@ class ApplicationService {
         },
       });
 
-      // 6️⃣ Criar histórico
       await tx.job_candidate_history.create({
         data: {
           job_candidate_id: applicationId,
@@ -204,11 +218,17 @@ class ApplicationService {
       });
 
       if (!application) {
-        throw new Error("APPLICATION_NOT_FOUND");
+        throw new NotFoundError(
+          "APPLICATION_NOT_FOUND",
+          "Candidatura não encontrada",
+        );
       }
 
       if (application.job.recruiter_id !== recruiterId) {
-        throw new Error("FORBIDDEN");
+        throw new ForbiddenError(
+          "FORBIDDEN",
+          "Você não pode avaliar esta candidatura",
+        );
       }
 
       const updated = await tx.job_candidates.update({
@@ -219,7 +239,6 @@ class ApplicationService {
         },
       });
 
-      // Opcional: salvar histórico de avaliação
       await tx.job_candidate_history.create({
         data: {
           job_candidate_id: applicationId,
@@ -242,10 +261,18 @@ class ApplicationService {
       },
     });
 
-    if (!application) throw new Error("APPLICATION_NOT_FOUND");
+    if (!application) {
+      throw new NotFoundError(
+        "APPLICATION_NOT_FOUND",
+        "Candidatura não encontrada",
+      );
+    }
 
     if (application.job.recruiter_id !== recruiterId) {
-      throw new Error("FORBIDDEN");
+      throw new ForbiddenError(
+        "FORBIDDEN",
+        "Você não pode acessar o histórico desta candidatura",
+      );
     }
 
     return prisma.job_candidate_history.findMany({
@@ -269,11 +296,17 @@ class ApplicationService {
       });
 
       if (!application) {
-        throw new Error("APPLICATION_NOT_FOUND");
+        throw new NotFoundError(
+          "APPLICATION_NOT_FOUND",
+          "Candidatura não encontrada",
+        );
       }
 
       if (application.job.recruiter_id !== recruiterId) {
-        throw new Error("FORBIDDEN");
+        throw new ForbiddenError(
+          "FORBIDDEN",
+          "Você não pode remover esta candidatura",
+        );
       }
 
       await tx.job_candidate_history.create({
