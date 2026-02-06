@@ -3,7 +3,6 @@ import JobController from "../controllers/JobController";
 
 const router = Router();
 
-// Rota pública para candidatos
-router.get("/public/jobs", JobController.publicList);
+router.get("/public/jobs", JobController.listPublic);
 
 export default router;

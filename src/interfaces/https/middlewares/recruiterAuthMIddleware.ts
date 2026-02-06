@@ -1,11 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
-
-interface JwtPayload {
-  sub: string;
-  email: string;
-  role: string;
-}
+import { verifyAccessToken } from "@/infra/security/jwt";
 
 export function recruiterAuthMiddleware(
   req: Request,
@@ -21,10 +15,7 @@ export function recruiterAuthMiddleware(
   const [, token] = authHeader.split(" ");
 
   try {
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET || "dev-secret",
-    ) as JwtPayload;
+    const decoded = verifyAccessToken(token);
 
     if (decoded.role !== "recruiter") {
       return res.status(403).json({ error: "FORBIDDEN" });
@@ -33,11 +24,11 @@ export function recruiterAuthMiddleware(
     req.user = {
       id: decoded.sub,
       email: decoded.email,
-      role: "recruiter",
+      role: decoded.role,
     };
 
     return next();
-  } catch {
+  } catch (err) {
     return res.status(401).json({ error: "TOKEN_INVALID" });
   }
 }

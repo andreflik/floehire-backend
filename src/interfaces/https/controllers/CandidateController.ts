@@ -46,4 +46,4 @@ class CandidateController {
   });
 }
 
-export default new CandidateController();
+export default CandidateController;

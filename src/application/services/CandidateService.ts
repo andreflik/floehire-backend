@@ -2,9 +2,9 @@ import { RegisterCandidateDTO } from "../dtos/RegisterCandidateDTO";
 import { CandidateRepository } from "@/domain/repositories/CandidateRepository";
 import { LoginCandidateDTO } from "../dtos/LoginCandidateDTO";
 import * as bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import prisma from "@/prisma";
 import crypto from "crypto";
+import { signAccessToken } from "@/infra/security/jwt";
 
 class CandidateService {
   constructor(private readonly repository: CandidateRepository) {}
@@ -101,16 +101,13 @@ class CandidateService {
       throw new Error("INVALID_CREDENTIALS");
     }
 
-    const token = jwt.sign(
+    const token = signAccessToken(
       {
         sub: candidate.id,
         email: candidate.email,
         role: "candidate",
       },
-      process.env.JWT_SECRET || "dev-secret",
-      {
-        expiresIn: "1d",
-      },
+      "1d",
     );
 
     return {

@@ -32,4 +32,4 @@ class RecruiterController {
   });
 }
 
-export default new RecruiterController();
+export default RecruiterController;

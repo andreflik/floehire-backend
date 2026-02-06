@@ -2,6 +2,7 @@ import prisma from "@/prisma";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
+import { signAccessToken } from "@/infra/security/jwt";
 
 interface RegisterRecruiterDTO {
   company_name: string;
@@ -60,14 +61,11 @@ export class RecruiterService {
     }
 
     // 🔐 Access Token (curto)
-    const accessToken = jwt.sign(
-      {
-        sub: recruiter.id,
-        role: "recruiter",
-      },
-      process.env.JWT_SECRET || "dev-secret",
-      { expiresIn: "15m" },
-    );
+    const accessToken = signAccessToken({
+      sub: recruiter.id,
+      email: recruiter.email,
+      role: "recruiter",
+    });
 
     // 🔁 Refresh Token (longo)
     const refreshToken = crypto.randomUUID();
