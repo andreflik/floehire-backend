@@ -186,6 +186,77 @@ class ApplicationService {
       },
     });
   }
+
+  async evaluateApplication(params: {
+    applicationId: string;
+    recruiterId: string;
+    rating?: number;
+    notes?: string | null;
+  }) {
+    const { applicationId, recruiterId, rating, notes } = params;
+
+    return prisma.$transaction(async (tx) => {
+      const application = await tx.job_candidates.findUnique({
+        where: { id: applicationId },
+        include: {
+          job: true,
+        },
+      });
+
+      if (!application) {
+        throw new Error("APPLICATION_NOT_FOUND");
+      }
+
+      if (application.job.recruiter_id !== recruiterId) {
+        throw new Error("FORBIDDEN");
+      }
+
+      const updated = await tx.job_candidates.update({
+        where: { id: applicationId },
+        data: {
+          rating: rating ?? application.rating,
+          notes: notes ?? application.notes,
+        },
+      });
+
+      // Opcional: salvar histórico de avaliação
+      await tx.job_candidate_history.create({
+        data: {
+          job_candidate_id: applicationId,
+          from_stage_name: application.current_stage_id ? "EVALUATION" : null,
+          to_stage_name: application.current_stage_id ? "EVALUATION" : null,
+          moved_by: "recruiter",
+          comment: "Evaluation updated",
+        },
+      });
+
+      return updated;
+    });
+  }
+
+  async getApplicationHistory(applicationId: string, recruiterId: string) {
+    const application = await prisma.job_candidates.findUnique({
+      where: { id: applicationId },
+      include: {
+        job: true,
+      },
+    });
+
+    if (!application) throw new Error("APPLICATION_NOT_FOUND");
+
+    if (application.job.recruiter_id !== recruiterId) {
+      throw new Error("FORBIDDEN");
+    }
+
+    return prisma.job_candidate_history.findMany({
+      where: {
+        job_candidate_id: applicationId,
+      },
+      orderBy: {
+        moved_at: "asc",
+      },
+    });
+  }
 }
 
 export default ApplicationService;

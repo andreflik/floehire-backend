@@ -4,6 +4,7 @@ import {
   applySchema,
   moveApplicationSchema,
   applicationIdParamSchema,
+  evaluateApplicationSchema,
   jobIdParamSchema,
 } from "@/application/validators/applicationSchemas";
 import { ZodError } from "zod";
@@ -85,5 +86,54 @@ export class ApplicationController {
     const data = await service.listByCandidate(candidateId);
 
     return res.json(data);
+  }
+
+  static async evaluate(req: Request, res: Response) {
+    try {
+      if (!req.user) return res.status(401).json({ error: "UNAUTHORIZED" });
+
+      const recruiterId = req.user.id;
+      const { applicationId } = applicationIdParamSchema.parse(req.params);
+      const payload = evaluateApplicationSchema.parse(req.body);
+
+      const result = await service.evaluateApplication({
+        applicationId,
+        recruiterId,
+        ...payload,
+      });
+
+      return res.json(result);
+    } catch (error: any) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({
+          error: "VALIDATION_ERROR",
+          details: error.flatten(),
+        });
+      }
+
+      return res
+        .status(400)
+        .json({ error: error.message || "EVALUATE_APPLICATION_FAILED" });
+    }
+  }
+
+  static async history(req: Request, res: Response) {
+    try {
+      if (!req.user) return res.status(401).json({ error: "UNAUTHORIZED" });
+
+      const recruiterId = req.user.id;
+      const { applicationId } = applicationIdParamSchema.parse(req.params);
+
+      const history = await service.getApplicationHistory(
+        applicationId,
+        recruiterId,
+      );
+
+      return res.json(history);
+    } catch (error: any) {
+      return res
+        .status(400)
+        .json({ error: error.message || "GET_HISTORY_FAILED" });
+    }
   }
 }

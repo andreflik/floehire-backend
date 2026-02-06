@@ -21,4 +21,16 @@ router.patch(
   ApplicationController.move,
 );
 
+router.patch(
+  "/:applicationId/evaluate",
+  recruiterAuthMiddleware,
+  ApplicationController.evaluate,
+);
+
+router.get(
+  "/:applicationId/history",
+  recruiterAuthMiddleware,
+  ApplicationController.history,
+);
+
 export default router;
