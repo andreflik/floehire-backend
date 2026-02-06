@@ -33,4 +33,10 @@ router.get(
   ApplicationController.history,
 );
 
+router.delete(
+  "/:applicationId",
+  recruiterAuthMiddleware,
+  ApplicationController.remove,
+);
+
 export default router;

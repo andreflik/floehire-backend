@@ -136,4 +136,31 @@ export class ApplicationController {
         .json({ error: error.message || "GET_HISTORY_FAILED" });
     }
   }
+
+  static async remove(req: Request, res: Response) {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "UNAUTHORIZED" });
+      }
+
+      const recruiterId = req.user.id;
+      const { applicationId } = req.params;
+
+      await service.removeApplication(applicationId, recruiterId);
+
+      return res.status(204).send();
+    } catch (error: any) {
+      console.error("ERRO AO REMOVER CANDIDATURA:", error);
+
+      if (error.message === "APPLICATION_NOT_FOUND") {
+        return res.status(404).json({ error: "APPLICATION_NOT_FOUND" });
+      }
+
+      if (error.message === "FORBIDDEN") {
+        return res.status(403).json({ error: "FORBIDDEN" });
+      }
+
+      return res.status(400).json({ error: error.message || "REMOVE_FAILED" });
+    }
+  }
 }

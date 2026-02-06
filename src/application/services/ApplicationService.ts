@@ -257,6 +257,42 @@ class ApplicationService {
       },
     });
   }
+
+  async removeApplication(applicationId: string, recruiterId: string) {
+    return prisma.$transaction(async (tx) => {
+      const application = await tx.job_candidates.findUnique({
+        where: { id: applicationId },
+        include: {
+          job: true,
+          current_stage: true,
+        },
+      });
+
+      if (!application) {
+        throw new Error("APPLICATION_NOT_FOUND");
+      }
+
+      if (application.job.recruiter_id !== recruiterId) {
+        throw new Error("FORBIDDEN");
+      }
+
+      await tx.job_candidate_history.create({
+        data: {
+          job_candidate_id: applicationId,
+          from_stage_name: application.current_stage?.name ?? null,
+          to_stage_name: null,
+          moved_by: "recruiter",
+          comment: "Application removed",
+        },
+      });
+
+      await tx.job_candidates.delete({
+        where: { id: applicationId },
+      });
+
+      return true;
+    });
+  }
 }
 
 export default ApplicationService;
