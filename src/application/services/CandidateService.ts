@@ -5,6 +5,8 @@ import * as bcrypt from "bcrypt";
 import prisma from "@/prisma";
 import crypto from "crypto";
 import { signAccessToken } from "@/infra/security/jwt";
+import { EmailService } from "@/infra/mail/EmailService";
+import { resetPasswordTemplate } from "@/infra/mail/templates/resetPasswordTemplate";
 
 class CandidateService {
   constructor(private readonly repository: CandidateRepository) {}
@@ -151,13 +153,21 @@ class CandidateService {
       data: {
         email,
         token,
-        expires_at: new Date(Date.now() + 1000 * 60 * 60), // 1 hora
+        expires_at: new Date(Date.now() + 1000 * 60 * 60),
       },
     });
 
-    const resetLink = `http://localhost:5173/resetar-senha/${token}`;
+    const resetLink = `${process.env.FRONTEND_URL}/resetar-senha/${token}`;
 
-    return resetLink;
+    const mailService = new EmailService();
+
+    await mailService.sendMail({
+      to: email,
+      subject: "Redefinição de senha - FloeHire",
+      html: resetPasswordTemplate(resetLink),
+    });
+
+    return true;
   }
 
   async resetPassword(token: string, newPassword: string) {
