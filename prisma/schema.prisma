@@ -32,28 +32,27 @@ enum job_hire_type {
 }
 
 model candidates {
-  id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
 
-  full_name     String      @db.VarChar(150)
-  email         String      @unique @db.VarChar(150)
-  phone         String?     @db.VarChar(20)
-  city          String?     @db.VarChar(100)
-  state         String?     @db.Char(2)
+  full_name     String   @db.VarChar(150)
+  email         String   @unique @db.VarChar(150)
+  phone         String?  @db.VarChar(20)
+  city          String?  @db.VarChar(100)
+  state         String?  @db.Char(2)
 
   linkedin_url  String?
   github_url    String?
   portfolio_url String?
 
   password_hash String
-
-  lgpd_consent  Boolean     @default(false)
-
-  created_at    DateTime    @default(now())
+  lgpd_consent  Boolean  @default(false)
+  created_at    DateTime @default(now())
 
   candidate_experiences candidate_experiences[]
   candidate_education   candidate_education[]
-
   job_candidates        job_candidates[]
+
+  candidate_refresh_tokens candidate_refresh_tokens[]
 }
 
 model candidate_experiences {
@@ -69,8 +68,8 @@ model candidate_experiences {
 }
 
 model candidate_education {
-  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  candidate_id     String     @db.Uuid
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  candidate_id     String   @db.Uuid
 
   escolaridade     String?
   curso            String?
@@ -79,10 +78,11 @@ model candidate_education {
   certificacoes    String?
   idiomas          String?
 
-  created_at       DateTime?  @default(now())
+  created_at       DateTime? @default(now())
 
-  candidates       candidates @relation(fields: [candidate_id], references: [id], onDelete: Cascade)
+  candidate        candidates @relation(fields: [candidate_id], references: [id], onDelete: Cascade)
 }
+
 model recruiters {
   id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   company_name  String   @db.VarChar(150)
@@ -182,4 +182,16 @@ model recruiter_refresh_tokens {
   recruiter recruiters @relation(fields: [recruiter_id], references: [id], onDelete: Cascade)
 
   @@index([recruiter_id])
+}
+
+model candidate_refresh_tokens {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  candidate_id String   @db.Uuid
+  token        String   @unique
+  expires_at   DateTime
+  created_at   DateTime @default(now())
+
+  candidate candidates @relation(fields: [candidate_id], references: [id], onDelete: Cascade)
+
+  @@index([candidate_id])
 }

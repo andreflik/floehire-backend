@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { candidateAuthMiddleware } from "../middlewares/candidateAuthMiddleware";
-import { recruiterAuthMiddleware } from "@/interfaces/https/middlewares/recruiterAuthMiddleware";
+import { recruiterAuthMiddleware } from "@/interfaces/https/middlewares/recruiterAuthMIddleware";
 import { ApplicationController } from "../controllers/ApplicationController";
 
 const router = Router();

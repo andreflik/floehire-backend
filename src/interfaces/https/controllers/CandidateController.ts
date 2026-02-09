@@ -5,6 +5,7 @@ import {
   registerCandidateSchema,
   loginCandidateSchema,
   forgotPasswordSchema,
+  candidateRefreshSchema,
 } from "@/application/validators/candidateSchemas";
 import { resetPasswordSchema } from "@/application/validators/resetPaswordSchema";
 import { asyncHandler } from "@/interfaces/https/utils/asyncHandler";
@@ -43,6 +44,14 @@ class CandidateController {
     await service.resetPassword(payload.token, payload.newPassword);
 
     return res.json({ message: "Senha alterada com sucesso!" });
+  });
+
+  static refresh = asyncHandler(async (req: Request, res: Response) => {
+    const { refresh_token } = candidateRefreshSchema.parse(req.body);
+
+    const result = await service.refresh(refresh_token);
+
+    return res.json(result);
   });
 }
 

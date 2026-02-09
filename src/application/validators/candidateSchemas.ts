@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-// Experiência
 export const experienceSchema = z.object({
   job_title: z.string().min(1).optional(),
   start_date: z
@@ -14,7 +13,6 @@ export const experienceSchema = z.object({
   responsibilities: z.string().min(1).optional(),
 });
 
-// Register Candidate
 export const registerCandidateSchema = z.object({
   full_name: z.string().min(3, "full_name must have at least 3 characters"),
   email: z.string().email("invalid email"),
@@ -45,19 +43,20 @@ export const registerCandidateSchema = z.object({
   experiences: z.array(experienceSchema).optional(),
 });
 
-// Login
 export const loginCandidateSchema = z.object({
   email: z.string().email("invalid email"),
   password: z.string().min(1, "password is required"),
 });
 
-// Forgot password
 export const forgotPasswordSchema = z.object({
   email: z.string().email("E-mail inválido"),
 });
 
-// Reset password
 export const resetPasswordSchema = z.object({
   token: z.string().uuid("Token inválido"),
   newPassword: z.string().min(8, "Senha deve ter no mínimo 8 caracteres"),
+});
+
+export const candidateRefreshSchema = z.object({
+  refresh_token: z.string().uuid("Refresh token inválido"),
 });

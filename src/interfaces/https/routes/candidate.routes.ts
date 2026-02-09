@@ -7,5 +7,6 @@ router.post("/candidate/login", CandidateController.login);
 
 router.post("/candidate/forgot-password", CandidateController.forgotPassword);
 router.post("/candidate/reset-password", CandidateController.resetPassword);
+router.post("/refresh", CandidateController.refresh);
 
 export default router;

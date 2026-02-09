@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { recruiterAuthMiddleware } from "@/interfaces/https/middlewares/recruiterAuthMiddleware";
+import { recruiterAuthMiddleware } from "@/interfaces/https/middlewares/recruiterAuthMIddleware";
 import { PipelineController } from "../controllers/PipelineController";
 
 const router = Router();

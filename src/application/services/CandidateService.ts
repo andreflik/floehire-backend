@@ -101,17 +101,31 @@ class CandidateService {
       throw new Error("INVALID_CREDENTIALS");
     }
 
-    const token = signAccessToken(
+    const accessToken = signAccessToken(
       {
         sub: candidate.id,
         email: candidate.email,
         role: "candidate",
       },
-      "1d",
+      "15m",
     );
 
+    const refreshToken = crypto.randomUUID();
+
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7); // 7 dias
+
+    await prisma.candidate_refresh_tokens.create({
+      data: {
+        candidate_id: candidate.id,
+        token: refreshToken,
+        expires_at: expiresAt,
+      },
+    });
+
     return {
-      token,
+      access_token: accessToken,
+      refresh_token: refreshToken,
       candidate: {
         id: candidate.id,
         full_name: candidate.full_name,
@@ -171,6 +185,38 @@ class CandidateService {
     });
 
     return true;
+  }
+
+  async refresh(refreshToken: string) {
+    const stored = await prisma.candidate_refresh_tokens.findUnique({
+      where: { token: refreshToken },
+      include: { candidate: true },
+    });
+
+    if (!stored) {
+      throw new Error("INVALID_REFRESH_TOKEN");
+    }
+
+    if (stored.expires_at < new Date()) {
+      await prisma.candidate_refresh_tokens.delete({
+        where: { token: refreshToken },
+      });
+
+      throw new Error("REFRESH_TOKEN_EXPIRED");
+    }
+
+    const newAccessToken = signAccessToken(
+      {
+        sub: stored.candidate.id,
+        email: stored.candidate.email,
+        role: "candidate",
+      },
+      "15m",
+    );
+
+    return {
+      access_token: newAccessToken,
+    };
   }
 }
 
