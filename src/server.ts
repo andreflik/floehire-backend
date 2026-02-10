@@ -4,6 +4,8 @@ import dotenv from "dotenv";
 import routes from "./interfaces/https/routes";
 import { errorHandlerMiddleware } from "./interfaces/https/middlewares/errorHandlerMiddleware";
 import { errorHandler } from "@/interfaces/https/middlewares/errorHandler";
+import swaggerUi from "swagger-ui-express";
+import { swaggerSpec } from "@/infra/docs/swagger";
 
 dotenv.config();
 
@@ -13,6 +15,8 @@ app.use(cors());
 app.use(express.json());
 
 app.use(routes);
+
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.get("/", (req, res) => {
   res.send("API FloeHire rodando 🚀");

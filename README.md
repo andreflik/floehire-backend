@@ -1,177 +1,208 @@
-🚀 FloeHire Backend — Guia de Instalação
+# FloeHire Backend
 
-Este guia explica, passo a passo, como rodar o backend do FloeHire com:
+API backend do sistema **FloeHire** para gestão de vagas, candidatos, recrutadores e pipeline de contratação.
 
-✅ Node.js + TypeScript
-✅ Express
-✅ Prisma ORM
-✅ PostgreSQL via Docker
-✅ Ambiente local + Docker
+---
 
-📦 Requisitos
+## 🚀 Tecnologias
 
-Você precisa ter instalado na sua máquina:
+- Node.js + TypeScript
+- Express
+- Prisma ORM
+- PostgreSQL
+- JWT (Access + Refresh Token)
+- Nodemailer (SMTP Gmail)
+- Swagger (OpenAPI)
+- Jest (testes)
+- Docker / Docker Compose
 
-✅ Node.js v18 ou superior
-https://nodejs.org
+---
 
-✅ Docker e Docker Compose
-https://www.docker.com
+## 📦 Pré-requisitos
 
-✅ Git
+- Docker e Docker Compose **ou**
+- Node.js 18+
+- PostgreSQL
 
-✅ VSCode (recomendado)
+---
 
-Verifique:
+## ⚙️ Configuração
 
-node -v
-docker -v
-docker-compose -v
+Crie um arquivo `.env` na raiz do projeto:
 
-📁 Estrutura do Backend
-floehire-backend/
-│
-├── src/
-│ ├── server.ts
-│ ├── prisma.ts
-│ ├── routes/
-│ ├── services/
-│ └── controllers/
-│
-├── prisma/
-│ ├── schema.prisma
-│ └── migrations/
-│
-├── dockerfile
-├── docker-compose.yml
-├── tsconfig.json
-├── package.json
-└── .env
+```env
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/floehire"
 
-🧠 Arquivo .env
+JWT_SECRET=super-secret-key
 
-Crie um arquivo .env na raiz:
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USER=floehire16@gmail.com
+MAIL_PASS=SEU_APP_PASSWORD_DO_GMAIL
+MAIL_FROM=floehire16@gmail.com
 
-DATABASE_URL=postgresql://postgres:postgres@database:5432/floehire
+FRONTEND_URL=http://localhost:5173
+```
 
-🐘 Banco de Dados com Docker
-1️⃣ Subindo o banco Postgres
+> ⚠️ Para Gmail, use **App Password** (não a senha normal da conta).
 
-Use este docker-compose.yml:
+---
 
-services:
-backend:
-container_name: floehire-backend
-build:
-context: .
-dockerfile: dockerfile
-ports: - "3333:3333"
-environment: - DATABASE_URL=postgresql://postgres:postgres@database:5432/floehire
-depends_on: - database
-restart: always
+## 🐳 Rodando com Docker
 
-database:
-container_name: floehire-db
-image: postgres:15
-ports: - "5432:5432"
-environment:
-POSTGRES_DB: floehire
-POSTGRES_USER: postgres
-POSTGRES_PASSWORD: postgres
-volumes: - postgres_data:/var/lib/postgresql/data
+```bash
+docker compose up -d --build
+```
 
-volumes:
-postgres_data:
+A API ficará disponível em:
 
-Suba tudo com:
+```
+http://localhost:3333
+```
 
-docker-compose up -d --build
+---
 
-🐳 Dockerfile do Backend
+## ▶️ Rodando localmente (sem Docker)
 
-Seu dockerfile:
-
-FROM node:20-bullseye
-
-WORKDIR /app
-
-RUN apt-get update && apt-get install -y openssl
-
-COPY package\*.json ./
-COPY prisma ./prisma
-
-RUN npm install
-COPY . .
-
-ENV DATABASE_URL=postgresql://postgres:postgres@database:5432/floehire
-
-RUN npx prisma generate
-
-EXPOSE 3333
-
-CMD ["npm", "run", "dev"]
-
-📦 Instalando dependências (fora do Docker)
-
-Isso é ESSENCIAL para evitar erros no VSCode:
-
-No Windows (fora do container):
-
+```bash
 npm install
+npm run dev
+```
 
-Se der erro de types:
+---
 
-npm install --save-dev @types/node @types/express @types/cors @types/bcrypt
+## 🗄️ Prisma
 
-⚙️ Prisma
+Gerar client:
 
-Se precisar gerar novamente:
+```bash
+npx prisma generate
+```
 
-docker exec -it floehire-backend npx prisma generate
+> Este projeto utiliza o `schema.prisma` diretamente. Se for usar migrations, configure com cuidado para não perder dados.
 
-Verificar migrations:
+---
 
-docker exec -it floehire-backend npx prisma migrate dev
+## 📚 Documentação (Swagger)
 
-Abrir prisma studio:
+Após subir o backend, acesse:
 
-docker exec -it floehire-backend npx prisma studio
+```
+http://localhost:3333/docs
+```
 
-Acesse:
-👉 http://localhost:5555
+Lá você pode:
+- Ver todas as rotas
+- Testar endpoints
+- Autenticar via JWT (botão **Authorize**)
 
-🔥 Testar se o Backend está online
+---
 
-Abra no navegador:
+## 🔐 Autenticação
 
-http://localhost:3333/health
+- **Access Token**: JWT curto (15 minutos)
+- **Refresh Token**: salvo no banco (7 dias)
 
-Resposta esperada:
+### Perfis:
+- `candidate`
+- `recruiter`
 
-{
-"status": "ok",
-"time": "2025-11-27T21:49:37.494Z"
-}
+Os tokens devem ser enviados no header:
 
-🔧 Erros comuns e soluções
-❌ TypeScript reclamando de express/cors/bcrypt
+```
+Authorization: Bearer SEU_TOKEN
+```
 
-Você resolveu assim:
-👉 Instalando dependências fora do container também:
+---
 
-npm install
+## ✉️ Reset de senha
 
-❌ Prisma erro: \_\_internal
+Fluxo:
+1. `POST /candidates/forgot-password` com `{ email }`
+2. Usuário recebe e-mail com link
+3. Frontend abre tela `/resetar-senha/:token`
+4. Envia nova senha para `POST /candidates/reset-password`
 
-Você resolveu com:
-✅ Usar image node:20-bullseye
-✅ Instalar openssl
-✅ Garantir que @prisma/client e prisma estão na mesma versão
+---
 
-"@prisma/client": "7.0.1",
-"prisma": "7.0.1"
+## 🧪 Testes
 
-❌ VSCode não reconhece @types/node
+Rodar todos os testes:
 
-Você resolveu:
-👉 Instalando Node e dependências na pasta do projeto local.
+```bash
+npx jest
+```
+
+Cobertura atual inclui:
+- CandidateService
+- RecruiterService
+- JobService
+- ApplicationService
+
+---
+
+## 📂 Estrutura do projeto
+
+```
+src/
+ ├─ application/
+ │   ├─ services/
+ │   ├─ validators/
+ │   └─ dtos/
+ ├─ domain/
+ │   └─ repositories/
+ ├─ infra/
+ │   ├─ mail/
+ │   ├─ security/
+ │   └─ docs/
+ ├─ interfaces/
+ │   └─ https/
+ │       ├─ controllers/
+ │       ├─ routes/
+ │       └─ middlewares/
+ ├─ prisma/
+ └─ server.ts
+```
+
+---
+
+## ✅ Funcionalidades principais
+
+- Cadastro e login de candidatos
+- Cadastro e login de recrutadores
+- CRUD de vagas
+- Listagem pública de vagas
+- Aplicação em vagas
+- Pipeline de candidatos por vaga
+- Avaliação de candidatos
+- Histórico de movimentações
+- Refresh token (candidate e recruiter)
+- Reset de senha por e-mail
+
+---
+
+## 🛣️ Próximos passos (roadmap)
+
+- Login social (Google / LinkedIn)
+- Perfis públicos de candidatos
+- Upload de currículo
+- Notificações por e-mail
+- Permissões mais granulares
+
+---
+
+## 🧑‍💻 Desenvolvimento
+
+Projeto desenvolvido com foco em:
+- Clean Architecture
+- Services isolados
+- Validações com Zod
+- Testes automatizados
+- Padronização de erros
+
+---
+
+## 📄 Licença
+
+Projeto privado - uso interno do FloeHire.
+
