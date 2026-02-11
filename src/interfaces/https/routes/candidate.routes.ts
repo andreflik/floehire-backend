@@ -1,5 +1,6 @@
 import { Router } from "express";
 import CandidateController from "../controllers/CandidateController";
+import { candidateAuthRateLimiter } from "../middlewares/rateLimitMiddleware";
 
 const router = Router();
 
@@ -138,7 +139,11 @@ const router = Router();
  *       409:
  *         description: Email já cadastrado
  */
-router.post("/candidate/register", CandidateController.register);
+router.post(
+  "/candidate/register",
+  candidateAuthRateLimiter,
+  CandidateController.register,
+);
 
 /**
  * @swagger
@@ -162,7 +167,11 @@ router.post("/candidate/register", CandidateController.register);
  *       401:
  *         description: Credenciais inválidas
  */
-router.post("/candidate/login", CandidateController.login);
+router.post(
+  "/candidate/login",
+  candidateAuthRateLimiter,
+  CandidateController.login,
+);
 
 /**
  * @swagger
@@ -188,7 +197,11 @@ router.post("/candidate/login", CandidateController.login);
  *       404:
  *         description: Email não encontrado
  */
-router.post("/candidate/forgot-password", CandidateController.forgotPassword);
+router.post(
+  "/candidate/forgot-password",
+  candidateAuthRateLimiter,
+  CandidateController.forgotPassword,
+);
 
 /**
  * @swagger
@@ -208,7 +221,11 @@ router.post("/candidate/forgot-password", CandidateController.forgotPassword);
  *       400:
  *         description: Token inválido ou expirado
  */
-router.post("/candidate/reset-password", CandidateController.resetPassword);
+router.post(
+  "/candidate/reset-password",
+  candidateAuthRateLimiter,
+  CandidateController.resetPassword,
+);
 
 /**
  * @swagger
@@ -236,6 +253,6 @@ router.post("/candidate/reset-password", CandidateController.resetPassword);
  *       401:
  *         description: Refresh token inválido ou expirado
  */
-router.post("/refresh", CandidateController.refresh);
+router.post("/refresh", candidateAuthRateLimiter, CandidateController.refresh);
 
 export default router;

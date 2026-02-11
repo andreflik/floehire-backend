@@ -6,6 +6,7 @@ import {
   recruiterLoginSchema,
   recruiterRefreshSchema,
 } from "@/application/validators/recruiterSchema";
+import { recruiterAuthRateLimiter } from "../middlewares/rateLimitMiddleware";
 
 const router = Router();
 
@@ -47,6 +48,7 @@ const router = Router();
  */
 router.post(
   "/recruiter/register",
+  recruiterAuthRateLimiter,
   validateBody(recruiterRegisterSchema),
   RecruiterController.register,
 );
@@ -85,6 +87,7 @@ router.post(
  */
 router.post(
   "/recruiter/login",
+  recruiterAuthRateLimiter,
   validateBody(recruiterLoginSchema),
   RecruiterController.login,
 );
@@ -119,6 +122,7 @@ router.post(
  */
 router.post(
   "/recruiter/refresh",
+  recruiterAuthRateLimiter,
   validateBody(recruiterRefreshSchema),
   RecruiterController.refresh,
 );

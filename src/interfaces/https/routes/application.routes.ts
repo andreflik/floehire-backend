@@ -2,6 +2,10 @@ import { Router } from "express";
 import { candidateAuthMiddleware } from "../middlewares/candidateAuthMiddleware";
 import { recruiterAuthMiddleware } from "@/interfaces/https/middlewares/recruiterAuthMIddleware";
 import { ApplicationController } from "../controllers/ApplicationController";
+import {
+  candidateApplyRateLimiter,
+  recruiterActionsRateLimiter,
+} from "@/interfaces/https/middlewares/rateLimitMiddleware";
 
 const router = Router();
 
@@ -41,7 +45,13 @@ const router = Router();
  *       401:
  *         description: Não autorizado
  */
-router.post("/", candidateAuthMiddleware, ApplicationController.apply);
+router.post(
+  "/",
+  candidateAuthMiddleware,
+  candidateApplyRateLimiter,
+  recruiterActionsRateLimiter,
+  ApplicationController.apply,
+);
 
 /**
  * @swagger
@@ -63,7 +73,13 @@ router.post("/", candidateAuthMiddleware, ApplicationController.apply);
  *       401:
  *         description: Não autorizado
  */
-router.get("/me", candidateAuthMiddleware, ApplicationController.listMine);
+router.get(
+  "/me",
+  candidateAuthMiddleware,
+  candidateApplyRateLimiter,
+  recruiterActionsRateLimiter,
+  ApplicationController.listMine,
+);
 
 /**
  * @swagger
@@ -98,6 +114,8 @@ router.get("/me", candidateAuthMiddleware, ApplicationController.listMine);
 router.get(
   "/jobs/:jobId/applications",
   recruiterAuthMiddleware,
+  candidateApplyRateLimiter,
+  recruiterActionsRateLimiter,
   ApplicationController.listByJob,
 );
 
@@ -143,6 +161,8 @@ router.get(
 router.patch(
   "/:applicationId/move",
   recruiterAuthMiddleware,
+  candidateApplyRateLimiter,
+  recruiterActionsRateLimiter,
   ApplicationController.move,
 );
 
@@ -188,6 +208,8 @@ router.patch(
 router.patch(
   "/:applicationId/evaluate",
   recruiterAuthMiddleware,
+  candidateApplyRateLimiter,
+  recruiterActionsRateLimiter,
   ApplicationController.evaluate,
 );
 
@@ -224,6 +246,8 @@ router.patch(
 router.get(
   "/:applicationId/history",
   recruiterAuthMiddleware,
+  candidateApplyRateLimiter,
+  recruiterActionsRateLimiter,
   ApplicationController.history,
 );
 
@@ -254,6 +278,8 @@ router.get(
 router.delete(
   "/:applicationId",
   recruiterAuthMiddleware,
+  candidateApplyRateLimiter,
+  recruiterActionsRateLimiter,
   ApplicationController.remove,
 );
 

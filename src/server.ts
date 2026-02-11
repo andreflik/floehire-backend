@@ -6,6 +6,7 @@ import { errorHandlerMiddleware } from "./interfaces/https/middlewares/errorHand
 import { errorHandler } from "@/interfaces/https/middlewares/errorHandler";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "@/infra/docs/swagger";
+import { globalRateLimiter } from "./interfaces/https/middlewares/rateLimitMiddleware";
 
 dotenv.config();
 
@@ -13,6 +14,8 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+app.use(globalRateLimiter);
 
 app.use(routes);
 
