@@ -9,19 +9,9 @@ import publicJobsRoutes from "./public.jobs.routes";
 
 const router = express.Router();
 
-/**
- * ============================
- * 🌍 ROTAS PÚBLICAS
- * ============================
- */
 router.use("/jobs", jobRoutes);
 router.use("/", publicJobsRoutes);
 
-/**
- * ============================
- * 🔐 ROTAS AUTHENTICADAS
- * ============================
- */
 router.use("/", candidateRoutes);
 router.use("/", recruiterRoutes);
 router.use("/applications", applicationRoutes);
