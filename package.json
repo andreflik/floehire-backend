@@ -6,7 +6,17 @@
     "dev": "npx ts-node-dev --respawn -r tsconfig-paths/register src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "prisma:generate": "prisma generate"
+
+    "test": "jest",
+
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "prisma db seed",
+    "db:reset": "prisma migrate reset --force",
+    "db:setup": "npm run db:generate && npm run db:migrate && npm run db:seed"
+  },
+  "prisma": {
+    "seed": "npx ts-node prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "5.19.1",
