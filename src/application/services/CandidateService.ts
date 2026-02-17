@@ -136,6 +136,12 @@ class CandidateService {
     };
   }
 
+  async logout(refreshToken: string) {
+    await (prisma as any).candidate_refresh_tokens.deleteMany({
+      where: { token: refreshToken },
+    });
+  }
+
   async forgotPassword(email: string) {
     const candidate = await this.repository.findByEmail(email);
 

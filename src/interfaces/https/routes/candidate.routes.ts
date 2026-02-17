@@ -255,4 +255,31 @@ router.post(
  */
 router.post("/refresh", candidateAuthRateLimiter, CandidateController.refresh);
 
+/**
+ * @swagger
+ * /candidate/logout:
+ *   post:
+ *     summary: Logout do candidato
+ *     tags: [Candidate]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - refresh_token
+ *             properties:
+ *               refresh_token:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Logout realizado com sucesso
+ */
+router.post(
+  "/candidate/logout",
+  candidateAuthRateLimiter,
+  CandidateController.logout,
+);
+
 export default router;

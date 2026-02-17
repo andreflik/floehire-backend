@@ -30,6 +30,18 @@ class CandidateController {
     return res.status(200).json(result);
   });
 
+  static logout = asyncHandler(async (req: Request, res: Response) => {
+    const { refresh_token } = req.body;
+
+    if (!refresh_token) {
+      return res.status(400).json({ message: "Refresh token é obrigatório" });
+    }
+
+    await service.logout(refresh_token);
+
+    return res.json({ message: "Logout realizado com sucesso" });
+  });
+
   static forgotPassword = asyncHandler(async (req: Request, res: Response) => {
     const { email } = forgotPasswordSchema.parse(req.body);
 
