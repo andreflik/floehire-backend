@@ -58,6 +58,7 @@ model candidates {
 model candidate_experiences {
   id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   candidate_id  String   @db.Uuid
+  company       String?
   job_title     String?
   start_date    DateTime?
   end_date      DateTime?

@@ -117,6 +117,7 @@ class CandidateService {
         candidate_experiences: {
           select: {
             id: true,
+            company: true,
             job_title: true,
             responsibilities: true,
             start_date: true,
@@ -157,6 +158,7 @@ class CandidateService {
       }>;
 
       experiences?: Array<{
+        company?: string;
         job_title?: string;
         responsibilities?: string;
         start_date?: string;
@@ -223,6 +225,7 @@ class CandidateService {
         await tx.candidate_experiences.createMany({
           data: data.experiences.map((exp) => ({
             candidate_id: candidateId,
+            company: exp.company ?? null,
             job_title: exp.job_title ?? null,
             responsibilities: exp.responsibilities ?? null,
             start_date: parseDate(exp.start_date),

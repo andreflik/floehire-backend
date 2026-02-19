@@ -25,6 +25,7 @@ export const updateCandidateProfileSchema = z.object({
   experiences: z
     .array(
       z.object({
+        company: z.string().optional().nullable(),
         job_title: z.string().optional(),
         responsibilities: z.string().optional(),
         start_date: z.string().optional(),
