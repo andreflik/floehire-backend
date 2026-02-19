@@ -164,8 +164,19 @@ class CandidateService {
       }>;
     },
   ) {
+    function parseDate(value?: string | null): Date | null {
+      if (!value) return null;
+
+      if (/^\d{4}-\d{2}$/.test(value)) {
+        const d = new Date(`${value}-01`);
+        return isNaN(d.getTime()) ? null : d;
+      }
+
+      const d = new Date(value);
+      return isNaN(d.getTime()) ? null : d;
+    }
+
     const result = await prisma.$transaction(async (tx) => {
-      // 1. Atualiza dados básicos
       const updateData = Object.fromEntries(
         Object.entries({
           full_name: data.full_name,
@@ -194,7 +205,6 @@ class CandidateService {
         },
       });
 
-      // 2. Adiciona novas formações (SEM apagar as antigas)
       if (data.education && data.education.length > 0) {
         await tx.candidate_education.createMany({
           data: data.education.map((edu) => ({
@@ -209,17 +219,14 @@ class CandidateService {
         });
       }
 
-      // 3. Adiciona novas experiências (SEM apagar as antigas)
       if (data.experiences && data.experiences.length > 0) {
         await tx.candidate_experiences.createMany({
           data: data.experiences.map((exp) => ({
             candidate_id: candidateId,
             job_title: exp.job_title ?? null,
             responsibilities: exp.responsibilities ?? null,
-            start_date: exp.start_date
-              ? new Date(`${exp.start_date}-01`)
-              : null,
-            end_date: exp.end_date ? new Date(`${exp.end_date}-01`) : null,
+            start_date: parseDate(exp.start_date),
+            end_date: parseDate(exp.end_date),
           })),
         });
       }
