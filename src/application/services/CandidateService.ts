@@ -104,6 +104,7 @@ class CandidateService {
 
         candidate_education: {
           select: {
+            id: true,
             escolaridade: true,
             curso: true,
             instituicao: true,
