@@ -165,18 +165,17 @@ class CandidateService {
   ) {
     const result = await prisma.$transaction(async (tx) => {
       // 1. Atualiza dados básicos
-      const updateData: any = {};
-
-      if (data.full_name !== undefined) updateData.full_name = data.full_name;
-      if (data.phone !== undefined) updateData.phone = data.phone;
-      if (data.city !== undefined) updateData.city = data.city;
-      if (data.state !== undefined) updateData.state = data.state;
-      if (data.linkedin_url !== undefined)
-        updateData.linkedin_url = data.linkedin_url;
-      if (data.github_url !== undefined)
-        updateData.github_url = data.github_url;
-      if (data.portfolio_url !== undefined)
-        updateData.portfolio_url = data.portfolio_url;
+      const updateData = Object.fromEntries(
+        Object.entries({
+          full_name: data.full_name,
+          phone: data.phone,
+          city: data.city,
+          state: data.state,
+          linkedin_url: data.linkedin_url,
+          github_url: data.github_url,
+          portfolio_url: data.portfolio_url,
+        }).filter(([, value]) => value !== undefined),
+      );
 
       const candidate = await tx.candidates.update({
         where: { id: candidateId },
