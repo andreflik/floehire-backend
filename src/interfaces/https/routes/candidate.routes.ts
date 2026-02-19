@@ -339,4 +339,56 @@ router.put(
   CandidateController.updateProfile,
 );
 
+/**
+ * @swagger
+ * /candidate/experiences/{id}:
+ *   delete:
+ *     summary: Remover uma experiência do candidato
+ *     tags: [Candidate]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Experiência removida com sucesso
+ *       404:
+ *         description: Experiência não encontrada
+ */
+router.delete(
+  "/candidate/experiences/:id",
+  candidateAuthMiddleware,
+  CandidateController.deleteExperience,
+);
+
+/**
+ * @swagger
+ * /candidate/education/{id}:
+ *   delete:
+ *     summary: Remover uma formação do candidato
+ *     tags: [Candidate]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Formação removida com sucesso
+ *       404:
+ *         description: Formação não encontrada
+ */
+router.delete(
+  "/candidate/education/:id",
+  candidateAuthMiddleware,
+  CandidateController.deleteEducation,
+);
+
 export default router;

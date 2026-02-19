@@ -41,6 +41,26 @@ class CandidateController {
     return res.json(result);
   });
 
+  static deleteExperience = asyncHandler(
+    async (req: Request, res: Response) => {
+      const candidateId = (req as any).user.sub;
+      const { id } = req.params;
+
+      await service.deleteExperience(candidateId, id);
+
+      return res.json({ message: "Experiência removida com sucesso" });
+    },
+  );
+
+  static deleteEducation = asyncHandler(async (req: Request, res: Response) => {
+    const candidateId = (req as any).user.sub;
+    const { id } = req.params;
+
+    await service.deleteEducation(candidateId, id);
+
+    return res.json({ message: "Formação removida com sucesso" });
+  });
+
   static login = asyncHandler(async (req: Request, res: Response) => {
     const payload = loginCandidateSchema.parse(req.body);
 

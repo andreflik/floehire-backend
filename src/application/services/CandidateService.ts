@@ -165,17 +165,22 @@ class CandidateService {
   ) {
     const result = await prisma.$transaction(async (tx) => {
       // 1. Atualiza dados básicos
+      const updateData: any = {};
+
+      if (data.full_name !== undefined) updateData.full_name = data.full_name;
+      if (data.phone !== undefined) updateData.phone = data.phone;
+      if (data.city !== undefined) updateData.city = data.city;
+      if (data.state !== undefined) updateData.state = data.state;
+      if (data.linkedin_url !== undefined)
+        updateData.linkedin_url = data.linkedin_url;
+      if (data.github_url !== undefined)
+        updateData.github_url = data.github_url;
+      if (data.portfolio_url !== undefined)
+        updateData.portfolio_url = data.portfolio_url;
+
       const candidate = await tx.candidates.update({
         where: { id: candidateId },
-        data: {
-          full_name: data.full_name,
-          phone: data.phone ?? null,
-          city: data.city ?? null,
-          state: data.state ?? null,
-          linkedin_url: data.linkedin_url ?? null,
-          github_url: data.github_url ?? null,
-          portfolio_url: data.portfolio_url ?? null,
-        },
+        data: updateData,
         select: {
           id: true,
           full_name: true,
@@ -224,6 +229,41 @@ class CandidateService {
 
     return result;
   }
+
+  async deleteExperience(candidateId: string, experienceId: string) {
+    const exp = await prisma.candidate_experiences.findFirst({
+      where: {
+        id: experienceId,
+        candidate_id: candidateId,
+      },
+    });
+
+    if (!exp) {
+      throw new Error("EXPERIENCE_NOT_FOUND");
+    }
+
+    await prisma.candidate_experiences.delete({
+      where: { id: experienceId },
+    });
+  }
+
+  async deleteEducation(candidateId: string, educationId: string) {
+    const edu = await prisma.candidate_education.findFirst({
+      where: {
+        id: educationId,
+        candidate_id: candidateId,
+      },
+    });
+
+    if (!edu) {
+      throw new Error("EDUCATION_NOT_FOUND");
+    }
+
+    await prisma.candidate_education.delete({
+      where: { id: educationId },
+    });
+  }
+
   async login(data: LoginCandidateDTO) {
     const candidate = await this.repository.findByEmail(data.email);
 
