@@ -9,6 +9,7 @@ import {
 } from "@/application/validators/candidateSchemas";
 import { resetPasswordSchema } from "@/application/validators/resetPaswordSchema";
 import { asyncHandler } from "@/interfaces/https/utils/asyncHandler";
+import { updateCandidateProfileSchema } from "@/application/validators/candidateProfileSchema";
 
 const repository = new PrismaCandidateRepository();
 const service = new CandidateService(repository);
@@ -20,6 +21,24 @@ class CandidateController {
     const result = await service.register(payload);
 
     return res.status(201).json(result);
+  });
+
+  static profile = asyncHandler(async (req: Request, res: Response) => {
+    const candidateId = (req as any).user.id;
+
+    const result = await service.getProfile(candidateId);
+
+    return res.json(result);
+  });
+
+  static updateProfile = asyncHandler(async (req: Request, res: Response) => {
+    const candidateId = (req as any).user.id;
+
+    const payload = updateCandidateProfileSchema.parse(req.body);
+
+    const result = await service.updateProfile(candidateId, payload);
+
+    return res.json(result);
   });
 
   static login = asyncHandler(async (req: Request, res: Response) => {

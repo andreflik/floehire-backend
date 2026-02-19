@@ -87,6 +87,143 @@ class CandidateService {
     }
   }
 
+  async getProfile(candidateId: string) {
+    const candidate = await prisma.candidates.findUnique({
+      where: { id: candidateId },
+      select: {
+        id: true,
+        full_name: true,
+        email: true,
+        phone: true,
+        city: true,
+        state: true,
+        linkedin_url: true,
+        github_url: true,
+        portfolio_url: true,
+        created_at: true,
+
+        candidate_education: {
+          select: {
+            escolaridade: true,
+            curso: true,
+            instituicao: true,
+            ano_conclusao: true,
+            certificacoes: true,
+            idiomas: true,
+          },
+        },
+
+        candidate_experiences: {
+          select: {
+            id: true,
+            job_title: true,
+            responsibilities: true,
+            start_date: true,
+            end_date: true,
+          },
+          orderBy: {
+            start_date: "desc",
+          },
+        },
+      },
+    });
+
+    if (!candidate) {
+      throw new Error("CANDIDATE_NOT_FOUND");
+    }
+
+    return candidate;
+  }
+
+  async updateProfile(
+    candidateId: string,
+    data: {
+      full_name?: string;
+      phone?: string | null;
+      city?: string | null;
+      state?: string | null;
+      linkedin_url?: string | null;
+      github_url?: string | null;
+      portfolio_url?: string | null;
+
+      education?: Array<{
+        escolaridade?: string;
+        curso?: string;
+        instituicao?: string;
+        ano_conclusao?: string;
+        certificacoes?: string;
+        idiomas?: string;
+      }>;
+
+      experiences?: Array<{
+        job_title?: string;
+        responsibilities?: string;
+        start_date?: string;
+        end_date?: string;
+      }>;
+    },
+  ) {
+    const result = await prisma.$transaction(async (tx) => {
+      // 1. Atualiza dados básicos
+      const candidate = await tx.candidates.update({
+        where: { id: candidateId },
+        data: {
+          full_name: data.full_name,
+          phone: data.phone ?? null,
+          city: data.city ?? null,
+          state: data.state ?? null,
+          linkedin_url: data.linkedin_url ?? null,
+          github_url: data.github_url ?? null,
+          portfolio_url: data.portfolio_url ?? null,
+        },
+        select: {
+          id: true,
+          full_name: true,
+          email: true,
+          phone: true,
+          city: true,
+          state: true,
+          linkedin_url: true,
+          github_url: true,
+          portfolio_url: true,
+        },
+      });
+
+      // 2. Adiciona novas formações (SEM apagar as antigas)
+      if (data.education && data.education.length > 0) {
+        await tx.candidate_education.createMany({
+          data: data.education.map((edu) => ({
+            candidate_id: candidateId,
+            escolaridade: edu.escolaridade ?? null,
+            curso: edu.curso ?? null,
+            instituicao: edu.instituicao ?? null,
+            ano_conclusao: edu.ano_conclusao ?? null,
+            certificacoes: edu.certificacoes ?? null,
+            idiomas: edu.idiomas ?? null,
+          })),
+        });
+      }
+
+      // 3. Adiciona novas experiências (SEM apagar as antigas)
+      if (data.experiences && data.experiences.length > 0) {
+        await tx.candidate_experiences.createMany({
+          data: data.experiences.map((exp) => ({
+            candidate_id: candidateId,
+            job_title: exp.job_title ?? null,
+            responsibilities: exp.responsibilities ?? null,
+            start_date: exp.start_date
+              ? new Date(`${exp.start_date}-01`)
+              : null,
+            end_date: exp.end_date ? new Date(`${exp.end_date}-01`) : null,
+          })),
+        });
+      }
+
+      return candidate;
+    });
+
+    return result;
+  }
   async login(data: LoginCandidateDTO) {
     const candidate = await this.repository.findByEmail(data.email);
 

@@ -12,7 +12,11 @@ export function candidateAuthMiddleware(
     return res.status(401).json({ error: "TOKEN_MISSING" });
   }
 
-  const [, token] = authHeader.split(" ");
+  const [scheme, token] = authHeader.split(" ");
+
+  if (scheme !== "Bearer" || !token) {
+    return res.status(401).json({ error: "TOKEN_MALFORMED" });
+  }
 
   try {
     const decoded = verifyAccessToken(token);

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import CandidateController from "../controllers/CandidateController";
 import { candidateAuthRateLimiter } from "../middlewares/rateLimitMiddleware";
+import { candidateAuthMiddleware } from "../middlewares/candidateAuthMiddleware";
 
 const router = Router();
 
@@ -280,6 +281,62 @@ router.post(
   "/candidate/logout",
   candidateAuthRateLimiter,
   CandidateController.logout,
+);
+
+/**
+ * @swagger
+ * /candidate/me:
+ *   get:
+ *     summary: Buscar perfil do candidato logado
+ *     tags: [Candidate]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Dados do perfil do candidato
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/CandidateProfile'
+ *       401:
+ *         description: Não autorizado
+ */
+router.get(
+  "/candidate/profile",
+  candidateAuthMiddleware,
+  CandidateController.profile,
+);
+
+/**
+ * @swagger
+ * /candidate/me:
+ *   put:
+ *     summary: Atualizar perfil do candidato logado
+ *     tags: [Candidate]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UpdateCandidateProfile'
+ *     responses:
+ *       200:
+ *         description: Perfil atualizado com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/CandidateProfile'
+ *       400:
+ *         description: Dados inválidos
+ *       401:
+ *         description: Não autorizado
+ */
+router.put(
+  "/candidate/updateProfile",
+  candidateAuthMiddleware,
+  CandidateController.updateProfile,
 );
 
 export default router;
