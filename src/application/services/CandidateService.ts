@@ -158,7 +158,7 @@ class CandidateService {
       }>;
 
       experiences?: Array<{
-        company?: string;
+        company?: string | null;
         job_title?: string;
         responsibilities?: string;
         start_date?: string;
