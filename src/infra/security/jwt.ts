@@ -14,9 +14,15 @@ export function signAccessToken(
   payload: JwtPayload,
   expiresIn: SignOptions["expiresIn"] = "15m",
 ) {
+  console.log("JWT_SECRET (LOGIN):", process.env.JWT_SECRET);
   return jwt.sign(payload, JWT_SECRET, { expiresIn });
 }
 
 export function verifyAccessToken(token: string): JwtPayload {
-  return jwt.verify(token, JWT_SECRET) as JwtPayload;
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
+    return decoded;
+  } catch (err) {
+    throw err;
+  }
 }
