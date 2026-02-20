@@ -2,6 +2,7 @@ import prisma from "@/prisma";
 import { NotFoundError } from "@/application/errors/NotFoundError";
 import { ForbiddenError } from "@/application/errors/ForbiddenError";
 import { AppError } from "@/application/errors/AppError";
+import { job_status } from "@prisma/client";
 
 class ApplicationService {
   async apply(candidateId: string, jobId: string) {
@@ -186,6 +187,45 @@ class ApplicationService {
             id: true,
             title: true,
             description: true,
+          },
+        },
+        current_stage: {
+          select: {
+            name: true,
+            stage_order: true,
+          },
+        },
+      },
+      orderBy: {
+        created_at: "desc",
+      },
+    });
+  }
+
+  async listHistoryByCandidate(candidateId: string) {
+    return prisma.job_candidates.findMany({
+      where: {
+        candidate_id: candidateId,
+        OR: [
+          {
+            current_stage: {
+              name: { in: ["Hired", "Rejected"] },
+            },
+          },
+          {
+            job: {
+              status: { in: [job_status.CLOSED, job_status.ARCHIVED] },
+            },
+          },
+        ],
+      },
+      include: {
+        job: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            status: true,
           },
         },
         current_stage: {

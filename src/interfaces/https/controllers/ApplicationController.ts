@@ -74,6 +74,12 @@ export class ApplicationController {
     return res.json(history);
   });
 
+  static historyMine = asyncHandler(async (req: Request, res: Response) => {
+    const candidateId = req.user!.id;
+    const data = await service.listHistoryByCandidate(candidateId);
+    return res.json(data);
+  });
+
   static remove = asyncHandler(async (req: Request, res: Response) => {
     const recruiterId = req.user!.id;
     const { applicationId } = applicationIdParamSchema.parse(req.params);

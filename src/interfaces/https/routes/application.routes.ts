@@ -18,6 +18,33 @@ const router = Router();
 
 /**
  * @swagger
+ * /applications/me/history:
+ *   get:
+ *     summary: Listar histórico de candidaturas do candidato
+ *     tags: [Applications]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de candidaturas finalizadas do candidato com histórico
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *       401:
+ *         description: Não autorizado
+ */
+router.get(
+  "/me/history",
+  candidateAuthMiddleware,
+  candidateApplyRateLimiter,
+  ApplicationController.historyMine,
+);
+
+/**
+ * @swagger
  * /applications:
  *   post:
  *     summary: Candidatar-se a uma vaga
