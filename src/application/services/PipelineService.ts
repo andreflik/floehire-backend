@@ -69,8 +69,11 @@ class PipelineService {
       throw new Error("APPLICATION_NOT_FOUND");
     }
 
-    const targetStage = await prisma.job_stages.findUnique({
-      where: { id: targetStageId },
+    const targetStage = await prisma.job_stages.findFirst({
+      where: {
+        id: targetStageId,
+        job_id: application.job_id,
+      },
     });
 
     if (!targetStage) {
