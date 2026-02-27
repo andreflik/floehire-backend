@@ -19,6 +19,18 @@ class PipelineService {
                     full_name: true,
                     email: true,
                     linkedin_url: true,
+                    phone: true,
+
+                    candidate_experiences: {
+                      orderBy: {
+                        start_date: "desc",
+                      },
+                      take: 1,
+                      select: {
+                        job_title: true,
+                        company: true,
+                      },
+                    },
                   },
                 },
               },
