@@ -48,13 +48,29 @@ class JobService {
   }
 
   async listByRecruiter(recruiterId: string) {
-    return prisma.jobs.findMany({
+    const jobs = await prisma.jobs.findMany({
       where: {
         recruiter_id: recruiterId,
-        status: { not: job_status.ARCHIVED },
       },
-      orderBy: { created_at: "desc" },
+      orderBy: {
+        created_at: "desc",
+      },
+      include: {
+        _count: {
+          select: {
+            candidates: true,
+          },
+        },
+      },
     });
+
+    return jobs.map((job) => ({
+      id: job.id,
+      title: job.title,
+      status: job.status,
+      created_at: job.created_at,
+      candidates: job._count.candidates,
+    }));
   }
 
   async getById(jobId: string, recruiterId: string) {
