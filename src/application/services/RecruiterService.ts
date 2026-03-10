@@ -15,6 +15,15 @@ interface LoginRecruiterDTO {
   password: string;
 }
 
+interface UpdateRecruiterProfileDTO {
+  company_name?: string;
+  website?: string;
+  linkedin?: string;
+  location?: string;
+  description?: string;
+  logo_url?: string;
+}
+
 export class RecruiterService {
   async register(data: RegisterRecruiterDTO) {
     const exists = await prisma.recruiters.findUnique({
@@ -122,5 +131,52 @@ export class RecruiterService {
     return {
       access_token: newAccessToken,
     };
+  }
+
+  async getProfile(recruiterId: string) {
+    const recruiter = await prisma.recruiters.findUnique({
+      where: { id: recruiterId },
+      select: {
+        id: true,
+        company_name: true,
+        email: true,
+        website: true,
+        linkedin: true,
+        location: true,
+        description: true,
+        logo_url: true,
+        created_at: true,
+      },
+    });
+
+    if (!recruiter) {
+      throw new Error("RECRUITER_NOT_FOUND");
+    }
+
+    return recruiter;
+  }
+
+  async updateProfile(recruiterId: string, data: any) {
+    return prisma.recruiters.update({
+      where: { id: recruiterId },
+      data: {
+        company_name: data.company_name,
+        website: data.website,
+        linkedin: data.linkedin,
+        location: data.location,
+        description: data.description,
+        logo_url: data.logo_url,
+      },
+      select: {
+        id: true,
+        company_name: true,
+        email: true,
+        website: true,
+        linkedin: true,
+        location: true,
+        description: true,
+        logo_url: true,
+      },
+    });
   }
 }

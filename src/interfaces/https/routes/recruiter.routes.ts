@@ -7,6 +7,7 @@ import {
   recruiterRefreshSchema,
 } from "@/application/validators/recruiterSchema";
 import { recruiterAuthRateLimiter } from "../middlewares/rateLimitMiddleware";
+import { recruiterAuthMiddleware } from "../middlewares/recruiterAuthMIddleware";
 
 const router = Router();
 
@@ -125,6 +126,73 @@ router.post(
   recruiterAuthRateLimiter,
   validateBody(recruiterRefreshSchema),
   RecruiterController.refresh,
+);
+
+/**
+ * @swagger
+ * /recruiter/profile:
+ *   get:
+ *     tags: [Recruiter]
+ *     summary: Buscar perfil da empresa
+ *     description: Retorna os dados do recruiter autenticado.
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Perfil da empresa
+ *       401:
+ *         description: Não autorizado
+ */
+router.get(
+  "/recruiter/profile",
+  recruiterAuthMiddleware,
+  RecruiterController.getProfile,
+);
+
+/**
+ * @swagger
+ * /recruiter/profile:
+ *   put:
+ *     tags: [Recruiter]
+ *     summary: Atualizar perfil da empresa
+ *     description: Atualiza informações da empresa recrutadora.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               company_name:
+ *                 type: string
+ *                 example: OpenAI
+ *               website:
+ *                 type: string
+ *                 example: https://openai.com
+ *               linkedin:
+ *                 type: string
+ *                 example: https://linkedin.com/company/openai
+ *               location:
+ *                 type: string
+ *                 example: Remote
+ *               description:
+ *                 type: string
+ *                 example: Empresa de inteligência artificial
+ *               logo_url:
+ *                 type: string
+ *                 example: https://cdn.site/logo.png
+ *     responses:
+ *       200:
+ *         description: Perfil atualizado com sucesso
+ *       401:
+ *         description: Não autorizado
+ */
+router.put(
+  "/recruiter/profile",
+  recruiterAuthMiddleware,
+  RecruiterController.updateProfile,
 );
 
 export default router;

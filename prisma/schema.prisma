@@ -89,6 +89,13 @@ model recruiters {
   company_name  String   @db.VarChar(150)
   email         String   @unique @db.VarChar(150)
   password_hash String
+
+  website       String?  @db.VarChar(255)
+  linkedin      String?  @db.VarChar(255)
+  location      String?  @db.VarChar(150)
+  description   String?  @db.Text
+  logo_url      String?  @db.VarChar(255)
+
   created_at    DateTime @default(now())
 
   jobs          jobs[]

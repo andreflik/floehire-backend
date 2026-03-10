@@ -30,6 +30,26 @@ class RecruiterController {
     const result = await service.refresh(refresh_token);
     return res.json(result);
   });
+
+  static getProfile = asyncHandler(async (req: Request, res: Response) => {
+    if (!req.user) {
+      return res.status(401).json({ error: "UNAUTHORIZED" });
+    }
+
+    const recruiter = await service.getProfile(req.user.id);
+
+    return res.json(recruiter);
+  });
+
+  static updateProfile = asyncHandler(async (req: Request, res: Response) => {
+    if (!req.user) {
+      return res.status(401).json({ error: "UNAUTHORIZED" });
+    }
+
+    const recruiter = await service.updateProfile(req.user.id, req.body);
+
+    return res.json(recruiter);
+  });
 }
 
 export default RecruiterController;
