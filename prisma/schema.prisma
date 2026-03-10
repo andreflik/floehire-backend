@@ -34,6 +34,8 @@ enum job_hire_type {
 model candidates {
   id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
 
+  recruiter_id  String?  @db.Uuid
+
   full_name     String   @db.VarChar(150)
   email         String   @unique @db.VarChar(150)
   phone         String?  @db.VarChar(20)
@@ -48,11 +50,15 @@ model candidates {
   lgpd_consent  Boolean  @default(false)
   created_at    DateTime @default(now())
 
+  recruiter recruiters? @relation(fields: [recruiter_id], references: [id], onDelete: Cascade)
+
   candidate_experiences candidate_experiences[]
   candidate_education   candidate_education[]
   job_candidates        job_candidates[]
 
   candidate_refresh_tokens candidate_refresh_tokens[]
+
+  @@index([recruiter_id])
 }
 
 model candidate_experiences {
@@ -99,6 +105,8 @@ model recruiters {
   created_at    DateTime @default(now())
 
   jobs          jobs[]
+  candidates candidates[]
+  
   recruiter_refresh_tokens recruiter_refresh_tokens[]
 }
 
