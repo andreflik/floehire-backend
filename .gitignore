@@ -44,3 +44,4 @@ coverage/
 *.tsbuildinfo
 
 /generated/prisma
+/.env.dev
