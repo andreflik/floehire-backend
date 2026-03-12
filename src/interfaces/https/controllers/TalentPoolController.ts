@@ -12,7 +12,7 @@ class TalentPoolController {
 
     const recruiterId = req.user.id;
 
-    const candidate = await service.createCandidate(recruiterId, req.body);
+    const candidate = await service.createCandidate(req.body);
 
     return res.status(201).json(candidate);
   });
@@ -59,6 +59,26 @@ class TalentPoolController {
     );
 
     return res.status(201).json(application);
+  });
+
+  static uploadCV = asyncHandler(async (req: Request, res: Response) => {
+    console.log("HEADERS:", req.headers["content-type"]);
+    console.log("BODY:", req.body);
+    console.log("FILE:", req.file);
+
+    if (!req.user) {
+      return res.status(401).json({ error: "UNAUTHORIZED" });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: "FILE_REQUIRED" });
+    }
+
+    const recruiterId = req.user.id;
+
+    const candidate = await service.createCandidateFromCV(req.file.buffer);
+
+    return res.status(201).json(candidate);
   });
 }
 

@@ -7,6 +7,7 @@ import applicationRoutes from "./application.routes";
 import pipelineRoutes from "./pipeline.routes";
 import publicJobsRoutes from "./public.jobs.routes";
 import socialAuthRoutes from "./socialAuth.routes";
+import talentPoolRoutes from "./talentPool.routes";
 
 const router = express.Router();
 
@@ -19,5 +20,7 @@ router.use("/applications", applicationRoutes);
 router.use("/", pipelineRoutes);
 
 router.use(socialAuthRoutes);
+
+router.use("/talent-pool", talentPoolRoutes);
 
 export default router;

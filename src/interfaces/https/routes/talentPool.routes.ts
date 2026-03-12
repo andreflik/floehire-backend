@@ -1,18 +1,13 @@
 import { Router } from "express";
 import TalentPoolController from "../controllers/TalentPoolController";
 import { recruiterAuthMiddleware } from "../middlewares/recruiterAuthMIddleware";
-import { recruiterActionsRateLimiter } from "../middlewares/rateLimitMiddleware";
+import {
+  recruiterActionsRateLimiter,
+  recruiterAuthRateLimiter,
+} from "../middlewares/rateLimitMiddleware";
+import { upload } from "../middlewares/uploadMiddleware";
 
 const router = Router();
-
-/**
- * @swagger
- * tags:
- *   name: Talent Pool
- *   description: Banco de talentos da empresa
- */
-
-router.use(recruiterAuthMiddleware);
 
 /**
  * @swagger
@@ -62,7 +57,8 @@ router.use(recruiterAuthMiddleware);
  *         description: Candidato já existe
  */
 router.post(
-  "/talent-pool/candidates",
+  "/candidates",
+  recruiterAuthMiddleware,
   recruiterActionsRateLimiter,
   TalentPoolController.create,
 );
@@ -83,7 +79,8 @@ router.post(
  *         description: Não autorizado
  */
 router.get(
-  "/talent-pool/candidates",
+  "/candidates",
+  recruiterAuthMiddleware,
   recruiterActionsRateLimiter,
   TalentPoolController.list,
 );
@@ -114,7 +111,8 @@ router.get(
  *         description: Candidato não encontrado
  */
 router.get(
-  "/talent-pool/candidates/:candidateId",
+  "/candidates/:candidateId",
+  recruiterAuthMiddleware,
   recruiterActionsRateLimiter,
   TalentPoolController.show,
 );
@@ -160,9 +158,51 @@ router.get(
  *         description: Candidato ou vaga não encontrados
  */
 router.post(
-  "/talent-pool/candidates/:candidateId/apply",
+  "/candidates/:candidateId/apply",
+  recruiterAuthMiddleware,
   recruiterActionsRateLimiter,
   TalentPoolController.applyToJob,
+);
+
+/**
+ * @swagger
+ * /talent-pool/upload-cv:
+ *   post:
+ *     tags: [Talent Pool]
+ *     summary: Upload de CV (PDF) para criar candidato automaticamente
+ *     description: Permite ao recruiter enviar um currículo em PDF e o sistema cria automaticamente um candidato no banco de talentos.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - cv
+ *             properties:
+ *               cv:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       201:
+ *         description: Candidato criado a partir do CV
+ *       400:
+ *         description: Arquivo inválido ou email não encontrado no CV
+ *       401:
+ *         description: Não autorizado
+ */
+router.post(
+  "/upload-cv",
+  recruiterAuthMiddleware,
+  recruiterAuthRateLimiter,
+  upload.single("cv"),
+  (req, res, next) => {
+    console.log("MULTER FILE:", req.file);
+    next();
+  },
+  TalentPoolController.uploadCV,
 );
 
 export default router;
