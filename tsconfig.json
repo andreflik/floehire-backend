@@ -10,8 +10,6 @@
       "@/*": ["*"]
     },
 
-    "typeRoots": ["./src/@types", "./node_modules/@types"],
-
     "esModuleInterop": true,
     "moduleResolution": "node",
     "strict": true,
