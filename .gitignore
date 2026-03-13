@@ -45,3 +45,4 @@ coverage/
 
 /generated/prisma
 /.env.dev
+/.env.prod
