@@ -281,30 +281,27 @@ class CandidateService {
       throw new Error("INVALID_CREDENTIALS");
     }
 
-    const isValidPassword = await bcrypt.compare(
+    const validPassword = await bcrypt.compare(
       data.password,
       candidate.password_hash,
     );
 
-    if (!isValidPassword) {
+    if (!validPassword) {
       throw new Error("INVALID_CREDENTIALS");
     }
 
-    const accessToken = signAccessToken(
-      {
-        sub: candidate.id,
-        email: candidate.email,
-        role: "candidate",
-      },
-      "15m",
-    );
+    const accessToken = signAccessToken({
+      sub: candidate.id,
+      email: candidate.email,
+      role: "candidate",
+    });
 
     const refreshToken = crypto.randomUUID();
 
     const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7); // 7 dias
+    expiresAt.setDate(expiresAt.getDate() + 7);
 
-    await (prisma as any).candidate_refresh_tokens.create({
+    await prisma.candidate_refresh_tokens.create({
       data: {
         candidate_id: candidate.id,
         token: refreshToken,
