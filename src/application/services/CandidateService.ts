@@ -162,7 +162,7 @@ class CandidateService {
         job_title?: string;
         responsibilities?: string;
         start_date?: string;
-        end_date?: string;
+        end_date?: string | null;
       }>;
     },
   ) {

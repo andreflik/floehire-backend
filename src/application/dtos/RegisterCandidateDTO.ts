@@ -1,7 +1,7 @@
 export interface ExperienceDTO {
   job_title?: string;
   start_date?: string;
-  end_date?: string;
+  end_date?: string | null;
   responsibilities?: string;
 }
 
@@ -30,7 +30,7 @@ export interface RegisterCandidateDTO {
   experiences?: {
     job_title?: string;
     start_date?: string;
-    end_date?: string;
+    end_date?: string | null;
     responsibilities?: string;
   }[];
 }

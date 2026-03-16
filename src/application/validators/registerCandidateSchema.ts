@@ -2,9 +2,21 @@ import { z } from "zod";
 
 export const experienceSchema = z.object({
   job_title: z.string().optional(),
-  start_date: z.string().optional(),
-  end_date: z.string().optional(),
+
+  start_date: z
+    .string()
+    .regex(/^\d{4}-\d{2}$/)
+    .optional(),
+
+  end_date: z
+    .string()
+    .regex(/^\d{4}-\d{2}$/)
+    .nullable()
+    .optional(),
+
   responsibilities: z.string().optional(),
+
+  is_current: z.boolean().optional(),
 });
 
 export const registerCandidateSchema = z.object({

@@ -9,6 +9,7 @@ export const experienceSchema = z.object({
   end_date: z
     .string()
     .regex(/^\d{4}-\d{2}$/)
+    .nullable()
     .optional(),
   responsibilities: z.string().min(1).optional(),
 });

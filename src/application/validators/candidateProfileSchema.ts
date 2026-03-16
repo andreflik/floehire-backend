@@ -29,7 +29,7 @@ export const updateCandidateProfileSchema = z.object({
         job_title: z.string().optional(),
         responsibilities: z.string().optional(),
         start_date: z.string().optional(),
-        end_date: z.string().optional(),
+        end_date: z.string().optional().nullable(),
       }),
     )
     .optional(),
