@@ -8,41 +8,33 @@ import {
   jobIdParamSchema,
 } from "@/application/validators/jobSchemas";
 import { asyncHandler } from "@/interfaces/https/utils/asyncHandler";
+import { getAuthUser } from "../utils/getAuthUser";
 
 const service = new JobService();
 
 class JobController {
   static create = asyncHandler(async (req: Request, res: Response) => {
-    if (!req.user) {
-      return res.status(401).json({ error: "UNAUTHORIZED" });
-    }
+    const user = getAuthUser(req);
 
-    const recruiterId = req.user.id;
     const payload = createJobSchema.parse(req.body);
+    const job = await service.create(user.id, payload);
 
-    const job = await service.create(recruiterId, payload);
     return res.status(201).json(job);
   });
 
   static list = asyncHandler(async (req: Request, res: Response) => {
-    if (!req.user) {
-      return res.status(401).json({ error: "UNAUTHORIZED" });
-    }
+    const user = getAuthUser(req);
 
-    const recruiterId = req.user.id;
-    const jobs = await service.listByRecruiter(recruiterId);
+    const jobs = await service.listByRecruiter(user.id);
     return res.json(jobs);
   });
 
   static show = asyncHandler(async (req: Request, res: Response) => {
-    if (!req.user) {
-      return res.status(401).json({ error: "UNAUTHORIZED" });
-    }
+    const user = getAuthUser(req);
 
-    const recruiterId = req.user.id;
     const { id: jobId } = jobIdParamSchema.parse(req.params);
+    const job = await service.getById(jobId, user.id);
 
-    const job = await service.getById(jobId, recruiterId);
     return res.json(job);
   });
 
@@ -75,40 +67,31 @@ class JobController {
   });
 
   static update = asyncHandler(async (req: Request, res: Response) => {
-    if (!req.user) {
-      return res.status(401).json({ error: "UNAUTHORIZED" });
-    }
+    const user = getAuthUser(req);
 
-    const recruiterId = req.user.id;
     const { id: jobId } = jobIdParamSchema.parse(req.params);
     const payload = updateJobSchema.parse(req.body);
 
-    const job = await service.update(jobId, recruiterId, payload);
+    const job = await service.update(jobId, user.id, payload);
     return res.json(job);
   });
 
   static delete = asyncHandler(async (req: Request, res: Response) => {
-    if (!req.user) {
-      return res.status(401).json({ error: "UNAUTHORIZED" });
-    }
+    const user = getAuthUser(req);
 
-    const recruiterId = req.user.id;
     const { id: jobId } = jobIdParamSchema.parse(req.params);
 
-    await service.delete(jobId, recruiterId);
+    await service.delete(jobId, user.id);
     return res.status(204).send();
   });
 
   static updateStatus = asyncHandler(async (req: Request, res: Response) => {
-    if (!req.user) {
-      return res.status(401).json({ error: "UNAUTHORIZED" });
-    }
+    const user = getAuthUser(req);
 
-    const recruiterId = req.user.id;
     const { id: jobId } = jobIdParamSchema.parse(req.params);
     const { status } = updateJobStatusSchema.parse(req.body);
 
-    const job = await service.updateStatus(jobId, recruiterId, status);
+    const job = await service.updateStatus(jobId, user.id, status);
     return res.json(job);
   });
 }

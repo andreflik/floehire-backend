@@ -10,6 +10,7 @@ import {
 import { resetPasswordSchema } from "@/application/validators/resetPaswordSchema";
 import { asyncHandler } from "@/interfaces/https/utils/asyncHandler";
 import { updateCandidateProfileSchema } from "@/application/validators/candidateProfileSchema";
+import { getAuthUser } from "../utils/getAuthUser";
 
 const repository = new PrismaCandidateRepository();
 const service = new CandidateService(repository);
@@ -19,44 +20,41 @@ class CandidateController {
     const payload = registerCandidateSchema.parse(req.body);
 
     const result = await service.register(payload);
-
     return res.status(201).json(result);
   });
 
   static profile = asyncHandler(async (req: Request, res: Response) => {
-    const candidateId = (req as any).user.id;
+    const user = getAuthUser(req);
 
-    const result = await service.getProfile(candidateId);
-
+    const result = await service.getProfile(user.id);
     return res.json(result);
   });
 
   static updateProfile = asyncHandler(async (req: Request, res: Response) => {
-    const candidateId = (req as any).user.id;
+    const user = getAuthUser(req);
 
     const payload = updateCandidateProfileSchema.parse(req.body);
 
-    const result = await service.updateProfile(candidateId, payload);
-
+    const result = await service.updateProfile(user.id, payload);
     return res.json(result);
   });
 
   static deleteExperience = asyncHandler(
     async (req: Request, res: Response) => {
-      const candidateId = (req as any).user.sub;
+      const user = getAuthUser(req);
       const { id } = req.params;
 
-      await service.deleteExperience(candidateId, id);
+      await service.deleteExperience(user.id, id);
 
       return res.json({ message: "Experiência removida com sucesso" });
     },
   );
 
   static deleteEducation = asyncHandler(async (req: Request, res: Response) => {
-    const candidateId = (req as any).user.sub;
+    const user = getAuthUser(req);
     const { id } = req.params;
 
-    await service.deleteEducation(candidateId, id);
+    await service.deleteEducation(user.id, id);
 
     return res.json({ message: "Formação removida com sucesso" });
   });
@@ -65,7 +63,6 @@ class CandidateController {
     const payload = loginCandidateSchema.parse(req.body);
 
     const result = await service.login(payload);
-
     return res.status(200).json(result);
   });
 
@@ -101,7 +98,6 @@ class CandidateController {
     const { refresh_token } = candidateRefreshSchema.parse(req.body);
 
     const result = await service.refresh(refresh_token);
-
     return res.json(result);
   });
 }

@@ -6,6 +6,7 @@ import {
   recruiterRefreshSchema,
 } from "@/application/validators/recruiterSchema";
 import { asyncHandler } from "@/interfaces/https/utils/asyncHandler";
+import { getAuthUser } from "../utils/getAuthUser";
 
 const service = new RecruiterService();
 
@@ -32,22 +33,16 @@ class RecruiterController {
   });
 
   static getProfile = asyncHandler(async (req: Request, res: Response) => {
-    if (!req.user) {
-      return res.status(401).json({ error: "UNAUTHORIZED" });
-    }
+    const user = getAuthUser(req);
 
-    const recruiter = await service.getProfile(req.user.id);
-
+    const recruiter = await service.getProfile(user.id);
     return res.json(recruiter);
   });
 
   static updateProfile = asyncHandler(async (req: Request, res: Response) => {
-    if (!req.user) {
-      return res.status(401).json({ error: "UNAUTHORIZED" });
-    }
+    const user = getAuthUser(req);
 
-    const recruiter = await service.updateProfile(req.user.id, req.body);
-
+    const recruiter = await service.updateProfile(user.id, req.body);
     return res.json(recruiter);
   });
 }

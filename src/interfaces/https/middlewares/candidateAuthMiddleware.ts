@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { verifyAccessToken } from "@/infra/security/jwt";
+import { AuthRequest } from "@/types/AuthRequest";
 
 export function candidateAuthMiddleware(
   req: Request,
@@ -19,13 +20,17 @@ export function candidateAuthMiddleware(
   }
 
   try {
-    const decoded = verifyAccessToken(token);
+    const decoded = verifyAccessToken(token) as {
+      sub: string;
+      email: string;
+      role: "candidate" | "recruiter";
+    };
 
     if (decoded.role !== "candidate") {
       return res.status(403).json({ error: "FORBIDDEN" });
     }
 
-    req.user = {
+    (req as AuthRequest).user = {
       id: decoded.sub,
       email: decoded.email,
       role: decoded.role,

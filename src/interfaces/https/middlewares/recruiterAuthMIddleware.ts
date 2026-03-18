@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { verifyAccessToken } from "@/infra/security/jwt";
+import { AuthRequest } from "@/types/AuthRequest";
 
 export function recruiterAuthMiddleware(
   req: Request,
@@ -21,7 +22,7 @@ export function recruiterAuthMiddleware(
       return res.status(403).json({ error: "FORBIDDEN" });
     }
 
-    req.user = {
+    (req as AuthRequest).user = {
       id: decoded.sub,
       email: decoded.email,
       role: decoded.role,

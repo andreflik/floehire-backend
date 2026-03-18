@@ -1,19 +1,17 @@
 import { Request, Response } from "express";
 import { PipelineKanbanService } from "@/application/services/PipelineKanbanService";
+import { getAuthUser } from "../utils/getAuthUser";
 
 const service = new PipelineKanbanService();
 
 class PipelineKanbanController {
   static async show(req: Request, res: Response) {
     try {
-      if (!req.user) {
-        return res.status(401).json({ error: "UNAUTHORIZED" });
-      }
+      const user = getAuthUser(req);
 
-      const recruiterId = req.user.id;
       const { jobId } = req.params;
 
-      const pipeline = await service.getKanban(jobId, recruiterId);
+      const pipeline = await service.getKanban(jobId, user.id);
 
       return res.json(pipeline);
     } catch (error: any) {
